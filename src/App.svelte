@@ -6,7 +6,7 @@
 
   async function readlines(num=1) {
     let total_msg = '';
-	  let lines;
+    let lines;
     const reader = port.readable.getReader();
 
     while (true) {
@@ -17,12 +17,10 @@
       console.log(value, total_msg, total_msg.length);
       lines = total_msg.split(/\r\n/).filter(item => item.length>0)
       if (done || lines.length==num) {
-        // Allow the serial port to be closed later.
         reader.releaseLock();
-        console.log('done')
+        // console.log('done')
         break;
       }
-      // value is a Uint8Array.
     }
     return lines;
   }
@@ -65,6 +63,10 @@
     const ports = await navigator.serial.getPorts();
     console.log(ports);
   }
+  async function fetchtest() {
+    let values = await fetch_values();
+    console.log(values)
+  }
   function save_computer() {
     console.log("save to computer")
   }
@@ -74,6 +76,9 @@
 </script>
 <button on:click={connect}>
   connect
+</button>
+<button on:click={fetchtest}>
+  fetch test
 </button>
 <button on:click={save_computer}>
   save to computer
