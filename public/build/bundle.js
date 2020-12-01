@@ -27,6 +27,10 @@ var app = (function () {
     function is_empty(obj) {
         return Object.keys(obj).length === 0;
     }
+
+    function append(target, node) {
+        target.appendChild(node);
+    }
     function insert(target, node, anchor) {
         target.insertBefore(node, anchor || null);
     }
@@ -258,6 +262,10 @@ var app = (function () {
     function dispatch_dev(type, detail) {
         document.dispatchEvent(custom_event(type, Object.assign({ version: '3.30.1' }, detail)));
     }
+    function append_dev(target, node) {
+        dispatch_dev('SvelteDOMInsert', { target, node });
+        append(target, node);
+    }
     function insert_dev(target, node, anchor) {
         dispatch_dev('SvelteDOMInsert', { target, node, anchor });
         insert(target, node, anchor);
@@ -278,6 +286,10 @@ var app = (function () {
             dispatch_dev('SvelteDOMRemoveEventListener', { node, event, handler, modifiers });
             dispose();
         };
+    }
+    function prop_dev(node, property, value) {
+        node[property] = value;
+        dispatch_dev('SvelteDOMSetProperty', { node, property, value });
     }
     function validate_slots(name, slot, keys) {
         for (const slot_key of Object.keys(slot)) {
@@ -310,48 +322,122 @@ var app = (function () {
 
     function create_fragment(ctx) {
     	let button0;
+    	let t0;
     	let t1;
     	let button1;
+    	let t2;
+    	let button1_hidden_value;
     	let t3;
     	let button2;
+    	let t4;
+    	let button2_hidden_value;
+    	let t5;
+    	let button3;
+    	let t6;
+    	let button3_hidden_value;
+    	let t7;
+    	let button4;
+    	let t8;
+    	let button4_hidden_value;
+    	let t9;
+    	let button5;
+    	let t10;
+    	let button5_hidden_value;
     	let mounted;
     	let dispose;
 
     	const block = {
     		c: function create() {
     			button0 = element("button");
-    			button0.textContent = "connect";
+    			t0 = text("connect");
     			t1 = space();
     			button1 = element("button");
-    			button1.textContent = "save to computer";
+    			t2 = text("disconnect");
     			t3 = space();
     			button2 = element("button");
-    			button2.textContent = "save to board";
-    			add_location(button0, file, 74, 0, 1998);
-    			add_location(button1, file, 77, 0, 2046);
-    			add_location(button2, file, 80, 0, 2109);
+    			t4 = text("fetch test");
+    			t5 = space();
+    			button3 = element("button");
+    			t6 = text("write test");
+    			t7 = space();
+    			button4 = element("button");
+    			t8 = text("save to computer");
+    			t9 = space();
+    			button5 = element("button");
+    			t10 = text("save to board");
+    			button0.hidden = /*connected*/ ctx[0];
+    			add_location(button0, file, 112, 0, 2938);
+    			button1.hidden = button1_hidden_value = !/*connected*/ ctx[0];
+    			add_location(button1, file, 115, 0, 3005);
+    			button2.hidden = button2_hidden_value = !/*connected*/ ctx[0];
+    			add_location(button2, file, 118, 0, 3079);
+    			button3.hidden = button3_hidden_value = !/*connected*/ ctx[0];
+    			add_location(button3, file, 121, 0, 3152);
+    			button4.hidden = button4_hidden_value = !/*connected*/ ctx[0];
+    			add_location(button4, file, 124, 0, 3225);
+    			button5.hidden = button5_hidden_value = !/*connected*/ ctx[0];
+    			add_location(button5, file, 127, 0, 3308);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button0, anchor);
+    			append_dev(button0, t0);
     			insert_dev(target, t1, anchor);
     			insert_dev(target, button1, anchor);
+    			append_dev(button1, t2);
     			insert_dev(target, t3, anchor);
     			insert_dev(target, button2, anchor);
+    			append_dev(button2, t4);
+    			insert_dev(target, t5, anchor);
+    			insert_dev(target, button3, anchor);
+    			append_dev(button3, t6);
+    			insert_dev(target, t7, anchor);
+    			insert_dev(target, button4, anchor);
+    			append_dev(button4, t8);
+    			insert_dev(target, t9, anchor);
+    			insert_dev(target, button5, anchor);
+    			append_dev(button5, t10);
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(button0, "click", /*connect*/ ctx[0], false, false, false),
-    					listen_dev(button1, "click", save_computer, false, false, false),
-    					listen_dev(button2, "click", save_board, false, false, false)
+    					listen_dev(button0, "click", /*connect*/ ctx[2], false, false, false),
+    					listen_dev(button1, "click", /*disconnect*/ ctx[3], false, false, false),
+    					listen_dev(button2, "click", /*fetchtest*/ ctx[4], false, false, false),
+    					listen_dev(button3, "click", /*writetest*/ ctx[1], false, false, false),
+    					listen_dev(button4, "click", save_computer, false, false, false),
+    					listen_dev(button5, "click", save_board, false, false, false)
     				];
 
     				mounted = true;
     			}
     		},
-    		p: noop,
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*connected*/ 1) {
+    				prop_dev(button0, "hidden", /*connected*/ ctx[0]);
+    			}
+
+    			if (dirty & /*connected*/ 1 && button1_hidden_value !== (button1_hidden_value = !/*connected*/ ctx[0])) {
+    				prop_dev(button1, "hidden", button1_hidden_value);
+    			}
+
+    			if (dirty & /*connected*/ 1 && button2_hidden_value !== (button2_hidden_value = !/*connected*/ ctx[0])) {
+    				prop_dev(button2, "hidden", button2_hidden_value);
+    			}
+
+    			if (dirty & /*connected*/ 1 && button3_hidden_value !== (button3_hidden_value = !/*connected*/ ctx[0])) {
+    				prop_dev(button3, "hidden", button3_hidden_value);
+    			}
+
+    			if (dirty & /*connected*/ 1 && button4_hidden_value !== (button4_hidden_value = !/*connected*/ ctx[0])) {
+    				prop_dev(button4, "hidden", button4_hidden_value);
+    			}
+
+    			if (dirty & /*connected*/ 1 && button5_hidden_value !== (button5_hidden_value = !/*connected*/ ctx[0])) {
+    				prop_dev(button5, "hidden", button5_hidden_value);
+    			}
+    		},
     		i: noop,
     		o: noop,
     		d: function destroy(detaching) {
@@ -360,6 +446,12 @@ var app = (function () {
     			if (detaching) detach_dev(button1);
     			if (detaching) detach_dev(t3);
     			if (detaching) detach_dev(button2);
+    			if (detaching) detach_dev(t5);
+    			if (detaching) detach_dev(button3);
+    			if (detaching) detach_dev(t7);
+    			if (detaching) detach_dev(button4);
+    			if (detaching) detach_dev(t9);
+    			if (detaching) detach_dev(button5);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -394,12 +486,14 @@ var app = (function () {
     	validate_slots("App", slots, []);
     	let port;
     	let reader, writer, encoder, decoder;
+    	let connected = false;
     	const enc = new TextEncoder();
     	const dec = new TextDecoder();
 
     	async function readlines(num = 1) {
     		let total_msg = "";
     		let lines;
+    		let got_all = false;
     		const reader = port.readable.getReader();
 
     		while (true) {
@@ -409,17 +503,25 @@ var app = (function () {
     			// console.log(value);
     			total_msg += dec.decode(value);
 
-    			console.log(value, total_msg, total_msg.length);
-    			lines = total_msg.split(/\r\n/).filter(item => item.length > 0);
+    			// console.log('readlines', value, total_msg, total_msg.length);
+    			lines = total_msg.split(/\r\n/);
 
-    			if (done || lines.length == num) {
-    				// Allow the serial port to be closed later.
+    			// console.log('lines', lines, lines[lines.length-1])
+    			if (lines[lines.length - 1].length == 0 && lines.length == num + 1) {
+    				// check lines.lenght==(num+1) because there is an extra empty string at the end
+    				// console.log('got_all')
+    				got_all = true;
+    			}
+
+    			// console.log(total_msg)
+    			if (done || got_all) {
+    				lines = lines.filter(item => item.length > 0);
     				reader.releaseLock();
 
-    				console.log("done");
+    				// console.log('done')
     				break;
     			}
-    		} // value is a Uint8Array.
+    		}
 
     		return lines;
     	}
@@ -430,15 +532,30 @@ var app = (function () {
     		await writer.write(msg);
     		writer.releaseLock();
     		let value = await readlines(2);
-    		console.log(value);
+
+    		// console.log(value)
     		return value[1];
+    	}
+
+    	async function write_value(channel, value) {
+    		const writer = port.writable.getWriter();
+    		let msg = channel + " " + value + "\r\n";
+    		msg = enc.encode(msg);
+    		await writer.write(msg);
+    		writer.releaseLock();
+    	}
+
+    	async function writetest() {
+    		await write_value(1, 1);
+    		let lines = await readlines(3);
+    		console.log(lines);
     	}
 
     	async function fetch_values() {
     		let values = [];
 
     		for (let i = 0; i < 8; i++) {
-    			let msg = i + "?\r";
+    			let msg = i + "?\r\n";
     			console.log("msg", msg);
     			let value = await query(msg);
     			value = Number(value.split(" ")[1].trim());
@@ -458,10 +575,25 @@ var app = (function () {
     				console.log("port", port);
     				let values = await fetch_values();
     				console.log(values);
+    				$$invalidate(0, connected = true);
     			}
     		} catch(e) {
     			console.log("error message", e.message);
     		}
+    	}
+
+    	async function disconnect() {
+    		try {
+    			port.close();
+    			$$invalidate(0, connected = false);
+    		} catch(e) {
+    			console.log("error message", e.message);
+    		}
+    	}
+
+    	async function fetchtest() {
+    		let values = await fetch_values();
+    		console.log(values);
     	}
 
     	const writable_props = [];
@@ -476,13 +608,18 @@ var app = (function () {
     		writer,
     		encoder,
     		decoder,
+    		connected,
     		enc,
     		dec,
     		readlines,
     		query,
+    		write_value,
+    		writetest,
     		fetch_values,
     		connect,
+    		disconnect,
     		getPorts,
+    		fetchtest,
     		save_computer,
     		save_board
     	});
@@ -493,13 +630,14 @@ var app = (function () {
     		if ("writer" in $$props) writer = $$props.writer;
     		if ("encoder" in $$props) encoder = $$props.encoder;
     		if ("decoder" in $$props) decoder = $$props.decoder;
+    		if ("connected" in $$props) $$invalidate(0, connected = $$props.connected);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [connect];
+    	return [connected, writetest, connect, disconnect, fetchtest];
     }
 
     class App extends SvelteComponentDev {
