@@ -4,38 +4,43 @@
   const enc = new TextEncoder();
   const dec = new TextDecoder();
 
-  async function read_all() {
+  async function readlines(num=1) {
     let total_msg = '';
-  	const reader = port.readable.getReader();
+    const reader = port.readable.getReader();
 
-		while (true) {
-			const { value, done } = await reader.read();
+    while (true) {
+      const { value, done } = await reader.read();
       // console.log(value.length)
-			// console.log(value);
+      // console.log(value);
       total_msg += dec.decode(value);
       console.log(value, total_msg, total_msg.length);
-      console.log(total_msg.split(/\r\n/).filter(item => item.length>0))
-			if (done || total_msg.length==16) {
-				// Allow the serial port to be closed later.
-				reader.releaseLock();
+      lines = total_msg.split(/\r\n/).filter(item => item.length>0)
+      if (done || lines.length==num) {
+        // Allow the serial port to be closed later.
+        reader.releaseLock();
         console.log('done')
-				break;
-			}
-			// value is a Uint8Array.
-		}
-		return total_msg;
+        break;
+      }
+      // value is a Uint8Array.
+    }
+    return lines;
   }
-
+  async function query(msg, number_lines=1) {
+      const writer = port.writable.getWriter();
+      msg = enc.encode(msg);
+      await writer.write(msg);
+      writer.releaseLock();
+    let value = await readlines(2);
+    console.log(value)
+    return value[1]
+  }
   async function fetch_values() {
     let values = []
     for(let i=0; i<8; i++) {
       let msg = i+"?\r"
       console.log('msg', msg);
-      msg = enc.encode(msg);
-      let writer = port.writable.getWriter();
-      await writer.write(msg);
-      writer.releaseLock();
-      let value = await read_all()
+      let value = await query(msg)
+      value = Number(value.splt(' ')[1].trim())
       values.push(value)
       // console.log(values, values.length)
     }
