@@ -6,6 +6,7 @@
 
   async function readlines(num=1) {
     let total_msg = '';
+	  let lines;
     const reader = port.readable.getReader();
 
     while (true) {
@@ -40,7 +41,7 @@
       let msg = i+"?\r"
       console.log('msg', msg);
       let value = await query(msg)
-      value = Number(value.splt(' ')[1].trim())
+      value = Number(value.split(' ')[1].trim())
       values.push(value)
       // console.log(values, values.length)
     }

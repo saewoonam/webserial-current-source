@@ -327,9 +327,9 @@ var app = (function () {
     			t3 = space();
     			button2 = element("button");
     			button2.textContent = "save to board";
-    			add_location(button0, file, 68, 0, 1777);
-    			add_location(button1, file, 71, 0, 1825);
-    			add_location(button2, file, 74, 0, 1888);
+    			add_location(button0, file, 74, 0, 1998);
+    			add_location(button1, file, 77, 0, 2046);
+    			add_location(button2, file, 80, 0, 2109);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -397,8 +397,9 @@ var app = (function () {
     	const enc = new TextEncoder();
     	const dec = new TextDecoder();
 
-    	async function read_all() {
+    	async function readlines(num = 1) {
     		let total_msg = "";
+    		let lines;
     		const reader = port.readable.getReader();
 
     		while (true) {
@@ -409,9 +410,9 @@ var app = (function () {
     			total_msg += dec.decode(value);
 
     			console.log(value, total_msg, total_msg.length);
-    			console.log(total_msg.split(/\r\n/).filter(item => item.length > 0));
+    			lines = total_msg.split(/\r\n/).filter(item => item.length > 0);
 
-    			if (done || total_msg.length == 16) {
+    			if (done || lines.length == num) {
     				// Allow the serial port to be closed later.
     				reader.releaseLock();
 
@@ -420,7 +421,17 @@ var app = (function () {
     			}
     		} // value is a Uint8Array.
 
-    		return total_msg;
+    		return lines;
+    	}
+
+    	async function query(msg, number_lines = 1) {
+    		const writer = port.writable.getWriter();
+    		msg = enc.encode(msg);
+    		await writer.write(msg);
+    		writer.releaseLock();
+    		let value = await readlines(2);
+    		console.log(value);
+    		return value[1];
     	}
 
     	async function fetch_values() {
@@ -429,11 +440,8 @@ var app = (function () {
     		for (let i = 0; i < 8; i++) {
     			let msg = i + "?\r";
     			console.log("msg", msg);
-    			msg = enc.encode(msg);
-    			let writer = port.writable.getWriter();
-    			await writer.write(msg);
-    			writer.releaseLock();
-    			let value = await read_all();
+    			let value = await query(msg);
+    			value = Number(value.split(" ")[1].trim());
     			values.push(value);
     		} // console.log(values, values.length)
 
@@ -470,7 +478,8 @@ var app = (function () {
     		decoder,
     		enc,
     		dec,
-    		read_all,
+    		readlines,
+    		query,
     		fetch_values,
     		connect,
     		getPorts,
