@@ -10,22 +10,19 @@
 
 		while (true) {
 			const { value, done } = await reader.read();
-      // console.log(value, done)
-      console.log(value.length)
-			if (done || value.length==0) {
+      // console.log(value.length)
+			// console.log(value);
+      total_msg += dec.decode(value);
+      console.log(value, total_msg, total_msg.length);
+      console.log(total_msg.split(/\r\n/).filter(item => item.length>0))
+			if (done || total_msg.length==16) {
 				// Allow the serial port to be closed later.
 				reader.releaseLock();
         console.log('done')
 				break;
 			}
 			// value is a Uint8Array.
-			console.log(value);
-      total_msg += dec.decode(value);
-      console.log(total_msg);
 		}
-    console.log(value);
-    total_msg += dec.decode(value);
-    console.log(total_msg);
 		return total_msg;
   }
 
@@ -40,6 +37,7 @@
       writer.releaseLock();
       let value = await read_all()
       values.push(value)
+      // console.log(values, values.length)
     }
     return values;
   }
@@ -50,7 +48,7 @@
       if (port) {
         await port.open({baudRate: 115200});
         console.log('port', port)
-        values = await fetch_values()
+        let values = await fetch_values()
         console.log(values)
       }
     } catch (e) {
