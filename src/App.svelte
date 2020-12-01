@@ -1,6 +1,7 @@
 <script>
   let port;
   let reader, writer, encoder, decoder;
+  let connected = false;
   const enc = new TextEncoder();
   const dec = new TextDecoder();
 
@@ -54,6 +55,7 @@
         console.log('port', port)
         let values = await fetch_values()
         console.log(values)
+        connected = true;
       }
     } catch (e) {
       console.log("error message", e.message)
@@ -77,7 +79,7 @@
 <button on:click={connect}>
   connect
 </button>
-<button on:click={fetchtest}>
+<button on:click={fetchtest} disabled={!connected}>
   fetch test
 </button>
 <button on:click={save_computer}>
