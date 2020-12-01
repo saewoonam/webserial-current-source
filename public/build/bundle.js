@@ -323,13 +323,13 @@ var app = (function () {
     			button0.textContent = "connect";
     			t1 = space();
     			button1 = element("button");
-    			button1.textContent = "getPorts";
+    			button1.textContent = "save to computer";
     			t3 = space();
     			button2 = element("button");
-    			button2.textContent = "print_port";
-    			add_location(button0, file, 19, 0, 397);
-    			add_location(button1, file, 22, 0, 444);
-    			add_location(button2, file, 25, 0, 493);
+    			button2.textContent = "save to board";
+    			add_location(button0, file, 70, 0, 1742);
+    			add_location(button1, file, 73, 0, 1790);
+    			add_location(button2, file, 76, 0, 1853);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -344,8 +344,8 @@ var app = (function () {
     			if (!mounted) {
     				dispose = [
     					listen_dev(button0, "click", /*connect*/ ctx[0], false, false, false),
-    					listen_dev(button1, "click", getPorts, false, false, false),
-    					listen_dev(button2, "click", /*print_port*/ ctx[1], false, false, false)
+    					listen_dev(button1, "click", save_computer, false, false, false),
+    					listen_dev(button2, "click", save_board, false, false, false)
     				];
 
     				mounted = true;
@@ -381,23 +381,84 @@ var app = (function () {
     	console.log(ports);
     }
 
+    function save_computer() {
+    	console.log("save to computer");
+    }
+
+    function save_board() {
+    	console.log("save to board not done");
+    }
+
     function instance($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("App", slots, []);
     	let port;
-    	console.log(navigator.serial);
+    	let reader, writer, encoder, decoder;
+    	const enc = new TextEncoder();
+    	const dec = new TextDecoder();
+
+    	async function read_all() {
+    		let total_msg = "";
+    		const reader = port.readable.getReader();
+
+    		while (true) {
+    			const { value, done } = await reader.read();
+
+    			// console.log(value, done)
+    			console.log(value.length);
+
+    			if (done || value.length == 0) {
+    				// Allow the serial port to be closed later.
+    				reader.releaseLock();
+
+    				console.log("done");
+    				break;
+    			}
+
+    			// value is a Uint8Array.
+    			console.log(value);
+
+    			total_msg += dec.decode(value);
+    			console.log(total_msg);
+    		}
+
+    		console.log(value);
+    		total_msg += dec.decode(value);
+    		console.log(total_msg);
+    		return total_msg;
+    	}
+
+    	async function fetch_values() {
+    		let values = [];
+
+    		for (let i = 0; i < 8; i++) {
+    			let msg = i + "?\r";
+    			console.log("msg", msg);
+    			msg = enc.encode(msg);
+    			let writer = port.writable.getWriter();
+    			await writer.write(msg);
+    			writer.releaseLock();
+    			let value = await read_all();
+    			values.push(value);
+    		}
+
+    		return values;
+    	}
 
     	async function connect() {
     		try {
     			port = await navigator.serial.requestPort();
     			console.log(port.getInfo());
+
+    			if (port) {
+    				await port.open({ baudRate: 115200 });
+    				console.log("port", port);
+    				values = await fetch_values();
+    				console.log(values);
+    			}
     		} catch(e) {
     			console.log("error message", e.message);
     		}
-    	}
-
-    	function print_port() {
-    		console.log(port);
     	}
 
     	const writable_props = [];
@@ -406,17 +467,35 @@ var app = (function () {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== "$$") console_1.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
-    	$$self.$capture_state = () => ({ port, connect, getPorts, print_port });
+    	$$self.$capture_state = () => ({
+    		port,
+    		reader,
+    		writer,
+    		encoder,
+    		decoder,
+    		enc,
+    		dec,
+    		read_all,
+    		fetch_values,
+    		connect,
+    		getPorts,
+    		save_computer,
+    		save_board
+    	});
 
     	$$self.$inject_state = $$props => {
     		if ("port" in $$props) port = $$props.port;
+    		if ("reader" in $$props) reader = $$props.reader;
+    		if ("writer" in $$props) writer = $$props.writer;
+    		if ("encoder" in $$props) encoder = $$props.encoder;
+    		if ("decoder" in $$props) decoder = $$props.decoder;
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [connect, print_port];
+    	return [connect];
     }
 
     class App extends SvelteComponentDev {
