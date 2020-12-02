@@ -1,9 +1,14 @@
 <script>
+  import ChTable from './ChTable.svelte';
   let port;
   let reader, writer, encoder, decoder;
   let connected = false;
   const enc = new TextEncoder();
   const dec = new TextDecoder();
+  let data = []
+  for (let i=0; i<8; i++) {
+		data.push(['ch'+i, i+1, false])
+  }
 
   async function readlines(num=1) {
     let total_msg = '';
@@ -80,6 +85,9 @@
         await port.open({baudRate: 115200});
         console.log('port', port)
         let values = await fetch_values()
+				for (let i=0; i<8; i++) {
+					data[i][1] = values[i];
+				}
         console.log(values)
         connected = true;
       }
@@ -128,3 +136,4 @@
 <button on:click={save_board} hidden={!connected}>
   save to board
 </button>
+<ChTable {data}/>
