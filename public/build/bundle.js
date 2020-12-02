@@ -1932,6 +1932,10 @@ var app = (function () {
     	let t10;
     	let button5_hidden_value;
     	let t11;
+    	let button6;
+    	let t12;
+    	let button6_hidden_value;
+    	let t13;
     	let chtable;
     	let current;
     	let mounted;
@@ -1957,24 +1961,29 @@ var app = (function () {
     			t6 = text("write test");
     			t7 = space();
     			button4 = element("button");
-    			t8 = text("save to computer");
+    			t8 = text("json test");
     			t9 = space();
     			button5 = element("button");
-    			t10 = text("save to board");
+    			t10 = text("save to computer");
     			t11 = space();
+    			button6 = element("button");
+    			t12 = text("save to board");
+    			t13 = space();
     			create_component(chtable.$$.fragment);
     			button0.hidden = /*connected*/ ctx[0];
-    			add_location(button0, file$2, 120, 0, 3127);
+    			add_location(button0, file$2, 131, 0, 3427);
     			button1.hidden = button1_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button1, file$2, 123, 0, 3194);
+    			add_location(button1, file$2, 134, 0, 3494);
     			button2.hidden = button2_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button2, file$2, 126, 0, 3268);
+    			add_location(button2, file$2, 137, 0, 3568);
     			button3.hidden = button3_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button3, file$2, 129, 0, 3341);
+    			add_location(button3, file$2, 140, 0, 3641);
     			button4.hidden = button4_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button4, file$2, 132, 0, 3414);
+    			add_location(button4, file$2, 143, 0, 3714);
     			button5.hidden = button5_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button5, file$2, 135, 0, 3497);
+    			add_location(button5, file$2, 146, 0, 3785);
+    			button6.hidden = button6_hidden_value = !/*connected*/ ctx[0];
+    			add_location(button6, file$2, 149, 0, 3868);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -1998,17 +2007,21 @@ var app = (function () {
     			insert_dev(target, button5, anchor);
     			append_dev(button5, t10);
     			insert_dev(target, t11, anchor);
+    			insert_dev(target, button6, anchor);
+    			append_dev(button6, t12);
+    			insert_dev(target, t13, anchor);
     			mount_component(chtable, target, anchor);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(button0, "click", /*connect*/ ctx[3], false, false, false),
-    					listen_dev(button1, "click", /*disconnect*/ ctx[4], false, false, false),
-    					listen_dev(button2, "click", /*fetchtest*/ ctx[5], false, false, false),
-    					listen_dev(button3, "click", /*writetest*/ ctx[2], false, false, false),
-    					listen_dev(button4, "click", save_computer, false, false, false),
-    					listen_dev(button5, "click", save_board, false, false, false)
+    					listen_dev(button0, "click", /*connect*/ ctx[4], false, false, false),
+    					listen_dev(button1, "click", /*disconnect*/ ctx[5], false, false, false),
+    					listen_dev(button2, "click", /*fetchtest*/ ctx[6], false, false, false),
+    					listen_dev(button3, "click", /*writetest*/ ctx[3], false, false, false),
+    					listen_dev(button4, "click", /*jsontest*/ ctx[2], false, false, false),
+    					listen_dev(button5, "click", save_computer, false, false, false),
+    					listen_dev(button6, "click", /*save_board*/ ctx[7], false, false, false)
     				];
 
     				mounted = true;
@@ -2039,6 +2052,10 @@ var app = (function () {
     				prop_dev(button5, "hidden", button5_hidden_value);
     			}
 
+    			if (!current || dirty & /*connected*/ 1 && button6_hidden_value !== (button6_hidden_value = !/*connected*/ ctx[0])) {
+    				prop_dev(button6, "hidden", button6_hidden_value);
+    			}
+
     			const chtable_changes = {};
     			if (dirty & /*data*/ 2) chtable_changes.data = /*data*/ ctx[1];
     			chtable.$set(chtable_changes);
@@ -2065,6 +2082,8 @@ var app = (function () {
     			if (detaching) detach_dev(t9);
     			if (detaching) detach_dev(button5);
     			if (detaching) detach_dev(t11);
+    			if (detaching) detach_dev(button6);
+    			if (detaching) detach_dev(t13);
     			destroy_component(chtable, detaching);
     			mounted = false;
     			run_all(dispose);
@@ -2089,10 +2108,6 @@ var app = (function () {
 
     function save_computer() {
     	console.log("save to computer");
-    }
-
-    function save_board() {
-    	console.log("save to board not done");
     }
 
     function instance$2($$self, $$props, $$invalidate) {
@@ -2164,6 +2179,16 @@ var app = (function () {
     		writer.releaseLock();
     	}
 
+    	async function jsontest() {
+    		const writer = port.writable.getWriter();
+    		let msg = "C " + JSON.stringify(data) + "\r\n";
+    		msg = enc.encode(msg);
+    		await writer.write(msg);
+    		writer.releaseLock();
+    		let lines = await readlines(3);
+    		console.log(lines);
+    	}
+
     	async function writetest() {
     		await write_value(1, 1);
     		let lines = await readlines(3);
@@ -2220,6 +2245,11 @@ var app = (function () {
     		console.log(values);
     	}
 
+    	function save_board() {
+    		console.log("save to board not done");
+    		console.log(JSON.stringify(data));
+    	}
+
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
@@ -2240,6 +2270,7 @@ var app = (function () {
     		readlines,
     		query,
     		write_value,
+    		jsontest,
     		writetest,
     		fetch_values,
     		connect,
@@ -2264,7 +2295,16 @@ var app = (function () {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [connected, data, writetest, connect, disconnect, fetchtest];
+    	return [
+    		connected,
+    		data,
+    		jsontest,
+    		writetest,
+    		connect,
+    		disconnect,
+    		fetchtest,
+    		save_board
+    	];
     }
 
     class App extends SvelteComponentDev {

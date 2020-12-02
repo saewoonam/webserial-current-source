@@ -59,6 +59,16 @@
 		writer.releaseLock();
   }
 
+  async function jsontest() {
+		const writer = port.writable.getWriter();
+    let msg = 'C ' + JSON.stringify(data) + '\r\n';
+		msg = enc.encode(msg);
+		await writer.write(msg);
+		writer.releaseLock();
+    let lines = await readlines(3)
+    console.log(lines)
+
+	}
   async function writetest() {
     await write_value(1, 1);
     let lines = await readlines(3)
@@ -116,6 +126,7 @@
   }
   function save_board() {
     console.log("save to board not done")
+		console.log(JSON.stringify(data))
   }
 </script>
 <button on:click={connect} hidden={connected}>
@@ -129,6 +140,9 @@
 </button>
 <button on:click={writetest} hidden={!connected}>
   write test
+</button>
+<button on:click={jsontest} hidden={!connected}>
+  json test
 </button>
 <button on:click={save_computer} hidden={!connected}>
   save to computer
