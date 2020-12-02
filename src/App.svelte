@@ -1,4 +1,5 @@
 <script>
+	let fileHandle;
   import ChTable from './ChTable.svelte';
   let port;
   let reader, writer, encoder, decoder;
@@ -124,6 +125,15 @@
   function save_computer() {
     console.log("save to computer")
   }
+  async function load_from_computer() {
+    console.log("load from computer")
+		fileHandle = await window.showOpenFilePicker();
+		console.log('fileHandle', fileHandle[0]);
+		const file = await fileHandle[0].getFile();
+		const contents = await file.text();
+		let data = JSON.parse(contents)
+		console.log(data)
+  }
   function save_board() {
     console.log("save to board not done")
 		console.log(JSON.stringify(data))
@@ -149,5 +159,8 @@
 </button>
 <button on:click={save_board} hidden={!connected}>
   save to board
+</button>
+<button on:click={load_from_computer} hidden={!connected}>
+  load_from_computer 
 </button>
 <ChTable {data}/>

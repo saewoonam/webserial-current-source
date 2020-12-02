@@ -1936,6 +1936,10 @@ var app = (function () {
     	let t12;
     	let button6_hidden_value;
     	let t13;
+    	let button7;
+    	let t14;
+    	let button7_hidden_value;
+    	let t15;
     	let chtable;
     	let current;
     	let mounted;
@@ -1969,21 +1973,26 @@ var app = (function () {
     			button6 = element("button");
     			t12 = text("save to board");
     			t13 = space();
+    			button7 = element("button");
+    			t14 = text("load_from_computer");
+    			t15 = space();
     			create_component(chtable.$$.fragment);
     			button0.hidden = /*connected*/ ctx[0];
-    			add_location(button0, file$2, 131, 0, 3427);
+    			add_location(button0, file$2, 141, 0, 3758);
     			button1.hidden = button1_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button1, file$2, 134, 0, 3494);
+    			add_location(button1, file$2, 144, 0, 3825);
     			button2.hidden = button2_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button2, file$2, 137, 0, 3568);
+    			add_location(button2, file$2, 147, 0, 3899);
     			button3.hidden = button3_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button3, file$2, 140, 0, 3641);
+    			add_location(button3, file$2, 150, 0, 3972);
     			button4.hidden = button4_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button4, file$2, 143, 0, 3714);
+    			add_location(button4, file$2, 153, 0, 4045);
     			button5.hidden = button5_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button5, file$2, 146, 0, 3785);
+    			add_location(button5, file$2, 156, 0, 4116);
     			button6.hidden = button6_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button6, file$2, 149, 0, 3868);
+    			add_location(button6, file$2, 159, 0, 4199);
+    			button7.hidden = button7_hidden_value = !/*connected*/ ctx[0];
+    			add_location(button7, file$2, 162, 0, 4276);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -2010,6 +2019,9 @@ var app = (function () {
     			insert_dev(target, button6, anchor);
     			append_dev(button6, t12);
     			insert_dev(target, t13, anchor);
+    			insert_dev(target, button7, anchor);
+    			append_dev(button7, t14);
+    			insert_dev(target, t15, anchor);
     			mount_component(chtable, target, anchor);
     			current = true;
 
@@ -2021,7 +2033,8 @@ var app = (function () {
     					listen_dev(button3, "click", /*writetest*/ ctx[3], false, false, false),
     					listen_dev(button4, "click", /*jsontest*/ ctx[2], false, false, false),
     					listen_dev(button5, "click", save_computer, false, false, false),
-    					listen_dev(button6, "click", /*save_board*/ ctx[7], false, false, false)
+    					listen_dev(button6, "click", /*save_board*/ ctx[8], false, false, false),
+    					listen_dev(button7, "click", /*load_from_computer*/ ctx[7], false, false, false)
     				];
 
     				mounted = true;
@@ -2056,6 +2069,10 @@ var app = (function () {
     				prop_dev(button6, "hidden", button6_hidden_value);
     			}
 
+    			if (!current || dirty & /*connected*/ 1 && button7_hidden_value !== (button7_hidden_value = !/*connected*/ ctx[0])) {
+    				prop_dev(button7, "hidden", button7_hidden_value);
+    			}
+
     			const chtable_changes = {};
     			if (dirty & /*data*/ 2) chtable_changes.data = /*data*/ ctx[1];
     			chtable.$set(chtable_changes);
@@ -2084,6 +2101,8 @@ var app = (function () {
     			if (detaching) detach_dev(t11);
     			if (detaching) detach_dev(button6);
     			if (detaching) detach_dev(t13);
+    			if (detaching) detach_dev(button7);
+    			if (detaching) detach_dev(t15);
     			destroy_component(chtable, detaching);
     			mounted = false;
     			run_all(dispose);
@@ -2113,6 +2132,7 @@ var app = (function () {
     function instance$2($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots("App", slots, []);
+    	let fileHandle;
     	let port;
     	let reader, writer, encoder, decoder;
     	let connected = false;
@@ -2245,6 +2265,16 @@ var app = (function () {
     		console.log(values);
     	}
 
+    	async function load_from_computer() {
+    		console.log("load from computer");
+    		fileHandle = await window.showOpenFilePicker();
+    		console.log("fileHandle", fileHandle[0]);
+    		const file = await fileHandle[0].getFile();
+    		const contents = await file.text();
+    		let data = JSON.parse(contents);
+    		console.log(data);
+    	}
+
     	function save_board() {
     		console.log("save to board not done");
     		console.log(JSON.stringify(data));
@@ -2257,6 +2287,7 @@ var app = (function () {
     	});
 
     	$$self.$capture_state = () => ({
+    		fileHandle,
     		ChTable,
     		port,
     		reader,
@@ -2278,10 +2309,12 @@ var app = (function () {
     		getPorts,
     		fetchtest,
     		save_computer,
+    		load_from_computer,
     		save_board
     	});
 
     	$$self.$inject_state = $$props => {
+    		if ("fileHandle" in $$props) fileHandle = $$props.fileHandle;
     		if ("port" in $$props) port = $$props.port;
     		if ("reader" in $$props) reader = $$props.reader;
     		if ("writer" in $$props) writer = $$props.writer;
@@ -2303,6 +2336,7 @@ var app = (function () {
     		connect,
     		disconnect,
     		fetchtest,
+    		load_from_computer,
     		save_board
     	];
     }
