@@ -10,4 +10,4 @@
    Google Chrome browser
 *  Make sure that the web serial feature is enabled by enabling the experimental web platform features.  Goto chrome://flags/#enable-experimental-web-platform-features  in the Chrome Browser to check this
 
-# For instructionos for the web app:  https://github.com/saewoonam/webserial-current-source/blob/main/Instructions.md
+# For instructions on using the web app:  https://github.com/saewoonam/webserial-current-source/blob/main/Instructions.md
