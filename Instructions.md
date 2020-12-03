@@ -20,4 +20,4 @@ If the web serial feature is enabled in the browser you should see something lik
 
 <img src="https://github.com/saewoonam/webserial-current-source/blob/main/images/download.png" height=44> **download settings shown on othe website to a file on the computer**
 
-<img src="https://github.com/saewoonam/webserial-current-source/blob/main/images/upload.png" height=44> **upload settings from a file on the computer on to the website: does not set the currents, press the computer to board button to set the currents **
+<img src="https://github.com/saewoonam/webserial-current-source/blob/main/images/upload.png" height=44> **upload settings from a file on the computer on to the website: *does not set the currents, press the computer to board button to set the currents***
