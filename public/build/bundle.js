@@ -1936,10 +1936,6 @@ var app = (function () {
     	let t12;
     	let button6_hidden_value;
     	let t13;
-    	let button7;
-    	let t14;
-    	let button7_hidden_value;
-    	let t15;
     	let chtable;
     	let current;
     	let mounted;
@@ -1962,37 +1958,32 @@ var app = (function () {
     			t4 = text("fetch test");
     			t5 = space();
     			button3 = element("button");
-    			t6 = text("write test");
+    			t6 = text("save to computer");
     			t7 = space();
     			button4 = element("button");
-    			t8 = text("json test");
+    			t8 = text("save to board");
     			t9 = space();
     			button5 = element("button");
-    			t10 = text("save to computer");
+    			t10 = text("load_from_computer");
     			t11 = space();
     			button6 = element("button");
-    			t12 = text("save to board");
+    			t12 = text("send to board");
     			t13 = space();
-    			button7 = element("button");
-    			t14 = text("load_from_computer");
-    			t15 = space();
     			create_component(chtable.$$.fragment);
     			button0.hidden = /*connected*/ ctx[0];
-    			add_location(button0, file$2, 141, 0, 3758);
+    			add_location(button0, file$2, 186, 0, 5077);
     			button1.hidden = button1_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button1, file$2, 144, 0, 3825);
+    			add_location(button1, file$2, 189, 0, 5144);
     			button2.hidden = button2_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button2, file$2, 147, 0, 3899);
+    			add_location(button2, file$2, 192, 0, 5218);
     			button3.hidden = button3_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button3, file$2, 150, 0, 3972);
+    			add_location(button3, file$2, 203, 0, 5445);
     			button4.hidden = button4_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button4, file$2, 153, 0, 4045);
+    			add_location(button4, file$2, 206, 0, 5528);
     			button5.hidden = button5_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button5, file$2, 156, 0, 4116);
+    			add_location(button5, file$2, 209, 0, 5605);
     			button6.hidden = button6_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button6, file$2, 159, 0, 4199);
-    			button7.hidden = button7_hidden_value = !/*connected*/ ctx[0];
-    			add_location(button7, file$2, 162, 0, 4276);
+    			add_location(button6, file$2, 212, 0, 5696);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -2019,22 +2010,18 @@ var app = (function () {
     			insert_dev(target, button6, anchor);
     			append_dev(button6, t12);
     			insert_dev(target, t13, anchor);
-    			insert_dev(target, button7, anchor);
-    			append_dev(button7, t14);
-    			insert_dev(target, t15, anchor);
     			mount_component(chtable, target, anchor);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(button0, "click", /*connect*/ ctx[4], false, false, false),
-    					listen_dev(button1, "click", /*disconnect*/ ctx[5], false, false, false),
-    					listen_dev(button2, "click", /*fetchtest*/ ctx[6], false, false, false),
-    					listen_dev(button3, "click", /*writetest*/ ctx[3], false, false, false),
-    					listen_dev(button4, "click", /*jsontest*/ ctx[2], false, false, false),
-    					listen_dev(button5, "click", save_computer, false, false, false),
-    					listen_dev(button6, "click", /*save_board*/ ctx[8], false, false, false),
-    					listen_dev(button7, "click", /*load_from_computer*/ ctx[7], false, false, false)
+    					listen_dev(button0, "click", /*connect*/ ctx[2], false, false, false),
+    					listen_dev(button1, "click", /*disconnect*/ ctx[3], false, false, false),
+    					listen_dev(button2, "click", /*fetchtest*/ ctx[4], false, false, false),
+    					listen_dev(button3, "click", /*save_computer*/ ctx[5], false, false, false),
+    					listen_dev(button4, "click", /*save_board*/ ctx[7], false, false, false),
+    					listen_dev(button5, "click", /*load_from_computer*/ ctx[6], false, false, false),
+    					listen_dev(button6, "click", /*send*/ ctx[8], false, false, false)
     				];
 
     				mounted = true;
@@ -2069,10 +2056,6 @@ var app = (function () {
     				prop_dev(button6, "hidden", button6_hidden_value);
     			}
 
-    			if (!current || dirty & /*connected*/ 1 && button7_hidden_value !== (button7_hidden_value = !/*connected*/ ctx[0])) {
-    				prop_dev(button7, "hidden", button7_hidden_value);
-    			}
-
     			const chtable_changes = {};
     			if (dirty & /*data*/ 2) chtable_changes.data = /*data*/ ctx[1];
     			chtable.$set(chtable_changes);
@@ -2101,8 +2084,6 @@ var app = (function () {
     			if (detaching) detach_dev(t11);
     			if (detaching) detach_dev(button6);
     			if (detaching) detach_dev(t13);
-    			if (detaching) detach_dev(button7);
-    			if (detaching) detach_dev(t15);
     			destroy_component(chtable, detaching);
     			mounted = false;
     			run_all(dispose);
@@ -2125,8 +2106,29 @@ var app = (function () {
     	console.log(ports);
     }
 
-    function save_computer() {
-    	console.log("save to computer");
+    async function getNewFileHandle() {
+    	const options = {
+    		types: [
+    			{
+    				description: "Text Files",
+    				accept: { "text/plain": [".json"] }
+    			}
+    		]
+    	};
+
+    	const handle = await window.showSaveFilePicker(options);
+    	return handle;
+    }
+
+    async function writeFile(fileHandle, contents) {
+    	// Create a FileSystemWritableFileStream to write to.
+    	const writable = await fileHandle.createWritable();
+
+    	// Write the contents of the file to the stream.
+    	await writable.write(contents);
+
+    	// Close the file and write the contents to disk.
+    	await writable.close();
     }
 
     function instance$2($$self, $$props, $$invalidate) {
@@ -2148,8 +2150,11 @@ var app = (function () {
     		let total_msg = "";
     		let lines;
     		let got_all = false;
+
+    		// console.log('readlines')
     		const reader = port.readable.getReader();
 
+    		// console.log('loop until get all lines')
     		while (true) {
     			const { value, done } = await reader.read();
 
@@ -2157,13 +2162,14 @@ var app = (function () {
     			// console.log(value);
     			total_msg += dec.decode(value);
 
-    			// console.log('readlines', value, total_msg, total_msg.length);
+    			// console.log('values, total_msg', value, total_msg, total_msg.length);
     			lines = total_msg.split(/\r\n/);
 
     			// console.log('lines', lines, lines[lines.length-1])
     			if (lines[lines.length - 1].length == 0 && lines.length == num + 1) {
     				// check lines.lenght==(num+1) because there is an extra empty string at the end
-    				// console.log('got_all')
+    				console.log("got_all");
+
     				got_all = true;
     			}
 
@@ -2181,14 +2187,20 @@ var app = (function () {
     	}
 
     	async function query(msg, number_lines = 1) {
+    		console.log("query", msg);
     		const writer = port.writable.getWriter();
     		msg = enc.encode(msg);
     		await writer.write(msg);
     		writer.releaseLock();
-    		let value = await readlines(2);
+    		let value = await readlines(number_lines + 1);
 
     		// console.log(value)
-    		return value[1];
+    		let cmd;
+
+    		[cmd, ...value] = value;
+
+    		// console.log(value)
+    		return value;
     	}
 
     	async function write_value(channel, value) {
@@ -2220,9 +2232,19 @@ var app = (function () {
 
     		for (let i = 0; i < 8; i++) {
     			let msg = i + "?\r\n";
-    			console.log("msg", msg);
-    			let value = await query(msg);
-    			value = Number(value.split(" ")[1].trim());
+
+    			// console.log('msg', msg);
+    			let [value] = await query(msg);
+
+    			let [first, ...second] = value.split(" ");
+    			second = second.join(" ");
+
+    			// console.log(second)
+    			value = JSON.parse(second);
+
+    			// console.log('parsed value', value)
+    			value = Number(value[1]);
+
     			values.push(value);
     		} // console.log(values, values.length)
 
@@ -2265,19 +2287,39 @@ var app = (function () {
     		console.log(values);
     	}
 
+    	async function save_computer() {
+    		console.log("save to computer");
+    		let fileHandle = await getNewFileHandle();
+    		await writeFile(fileHandle, JSON.stringify(data));
+    		console.log(JSON.stringify(data));
+    	}
+
     	async function load_from_computer() {
     		console.log("load from computer");
     		fileHandle = await window.showOpenFilePicker();
     		console.log("fileHandle", fileHandle[0]);
     		const file = await fileHandle[0].getFile();
     		const contents = await file.text();
-    		let data = JSON.parse(contents);
+
+    		// Need to check that that JSON has the write schema
+    		$$invalidate(1, data = JSON.parse(contents));
+
+    		$$invalidate(1, data = data); // refreshes html page
     		console.log(data);
     	}
 
-    	function save_board() {
+    	async function save_board() {
     		console.log("save to board not done");
     		console.log(JSON.stringify(data));
+    	}
+
+    	async function send() {
+    		console.log("send", data);
+
+    		for (let i = 0; i < 8; i++) {
+    			await write_value(i, data[i][1]);
+    			let lines = await readlines(3);
+    		} // console.log(lines)
     	}
 
     	const writable_props = [];
@@ -2309,8 +2351,11 @@ var app = (function () {
     		getPorts,
     		fetchtest,
     		save_computer,
+    		getNewFileHandle,
+    		writeFile,
     		load_from_computer,
-    		save_board
+    		save_board,
+    		send
     	});
 
     	$$self.$inject_state = $$props => {
@@ -2331,13 +2376,13 @@ var app = (function () {
     	return [
     		connected,
     		data,
-    		jsontest,
-    		writetest,
     		connect,
     		disconnect,
     		fetchtest,
+    		save_computer,
     		load_from_computer,
-    		save_board
+    		save_board,
+    		send
     	];
     }
 
