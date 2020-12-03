@@ -1,16 +1,23 @@
 <script>
-	let fileHandle;
+	import {download, upload, computer, right, circle_up} from './AppIcons.js'
   import ChTable from './ChTable.svelte';
+	import SvgIcon from './SvgIcon.svelte';
+	import Board from './artboard.svelte';
+	import FileDown from './file_down.svelte';
+	import FileUp from './file_up.svelte';
+	import Floppy from './floppy.svelte';
+	let fileHandle;
   let port;
   let reader, writer, encoder, decoder;
   let connected = false;
   const enc = new TextEncoder();
   const dec = new TextDecoder();
   let data = []
-  for (let i=0; i<8; i++) {
+	/*
+	for (let i=0; i<8; i++) {
 		data.push(['ch'+i, i+1, false])
   }
-
+  */
   async function readlines(num=1) {
     let total_msg = '';
     let lines;
@@ -89,12 +96,10 @@
       let [value] = await query(msg)
 			let [first, ...second] = value.split(' ');
 			second = second.join(' ');
-			// console.log(second)
 			value = JSON.parse(second)
-			// console.log('parsed value', value)
-      value = Number(value[1])
-      values.push(value)
-      // console.log(values, values.length)
+			values.push(value)
+			// value = Number(value[1])
+			// values.push(value)
     }
     return values;
   }
@@ -105,20 +110,19 @@
       if (port) {
         await port.open({baudRate: 115200});
         console.log('port', port)
-        let values = await fetch_values()
-				for (let i=0; i<8; i++) {
-					data[i][1] = values[i];
-				}
-        console.log(values)
-        connected = true;
-      }
-    } catch (e) {
+        data = await fetch_values()
+			}
+      console.log('connect: data:', data)
+      connected = true;
+		} catch (e) {
       console.log("error message", e.message)
     }
   }
   async function disconnect () {
     try {
 			port.close();
+			data = [];
+			data = data;
 			connected = false;
     } catch (e) {
       console.log("error message", e.message)
@@ -172,13 +176,21 @@
 		console.log(data)
   }
   async function save_board() {
-    console.log("save to board not done")
-		console.log(JSON.stringify(data))
+    console.log("save on board")
+		// console.log(JSON.stringify(data))
+		const writer = port.writable.getWriter();
+    let msg = 'J\r\n';
+		msg = enc.encode(msg);
+		await writer.write(msg);
+		writer.releaseLock();
+    let response = await readlines(1);
+		console.log('response', response);
   }
   async function send() {
 		console.log('send', data)
 		for (let i=0; i<8; i++) {
-			await write_value(i, data[i][1]);
+			// await write_value(i, data[i][1]);
+			await write_value(i, JSON.stringify(data[i]));
 			let lines = await readlines(3)
 			// console.log(lines)
 	  }
@@ -191,9 +203,15 @@
   disconnect
 </button>
 <button on:click={fetchtest} hidden={!connected}>
-  fetch test
+  <Board />  <SvgIcon d={right} /> <SvgIcon d={computer} />
 </button>
-	<!--
+<button on:click={send} hidden={!connected}>
+	<SvgIcon d={computer} /> <SvgIcon d={right} /> <Board /> 
+</button>
+<button on:click={save_board} hidden={!connected}>
+	<Board /><Floppy />
+</button>
+<!--
 <button on:click={writetest} hidden={!connected}>
   write test
 </button>
@@ -202,15 +220,11 @@
 </button>
 -->
 <button on:click={save_computer} hidden={!connected}>
-  save to computer
-</button>
-<button on:click={save_board} hidden={!connected}>
-  save to board
+	<FileDown />
+	download from website
 </button>
 <button on:click={load_from_computer} hidden={!connected}>
-  load_from_computer 
-</button>
-<button on:click={send} hidden={!connected}>
-   send to board
+	<FileUp />
+ upload to website 
 </button>
 <ChTable {data}/>

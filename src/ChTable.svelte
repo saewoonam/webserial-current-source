@@ -3,7 +3,7 @@
 
 	let extras = {min: -100, max:100, style:"width: 5em;"}
 	let min = 1
-	let columns = ['Name', 'value', 'on/off']
+	let columns = ['Name', 'value', 'zero']
 	export let data = [];
 // 	for (let i=0; i<3; i++) {
 // 		data.push(['ch'+i, i+1, false])
@@ -22,9 +22,11 @@
 
 <table>	
 	<tr>
+		{#if data.length>0}
 		{#each columns as column}
 		<th>{column}</th>
 		{/each}
+	  {/if}
 	</tr>
 	{#each data as row}
 	<tr>
