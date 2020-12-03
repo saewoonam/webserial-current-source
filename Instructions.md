@@ -1,5 +1,5 @@
 # Instructions:
-* Go to https://saewoonam.githubio.io/webserial-current-source
+* Go to https://github.com/saewoonam/webserial-current-source/deployments/activity_log?environment=github-pages
 If the web serial feature is enabled in the browser you should see something like the image below
 
 ![website](https://user-images.githubusercontent.com/2872116/101087607-acb33600-356f-11eb-9b31-bc77c5fd32da.png)
