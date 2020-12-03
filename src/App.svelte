@@ -225,7 +225,7 @@ button[tooltip]:focus::after {
 }
 
 </style>
-
+{#if ('serial' in navigator)}
 <button on:click={connect} hidden={connected}>
   connect
 </button>
@@ -260,3 +260,14 @@ tooltip="load setting to webpage from a computer file">
   <FileUp />
   </button>
   <ChTable {data}/>
+{:else}
+  <h2> Web serial doesn't seem to be enabled in your browser. </h2>
+  <h2> Make sure it is Chrome, Opera, or Edge. </h2>
+  <h3>  Enable it in chrome by putting the following address in address bar </h3>
+chrome://flags/#enable-experimental-web-platform-features
+  <h3> for opera: </h3>
+opera://flags/#enable-experimental-web-platform-features
+  <h3> for edge: </h3>
+edge://flags/#enable-experimental-web-platform-features
+
+{/if}
