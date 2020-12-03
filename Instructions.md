@@ -21,3 +21,15 @@ If the web serial feature is enabled in the browser you should see something lik
 <img src="https://github.com/saewoonam/webserial-current-source/blob/main/images/download.png" height=44> **download settings shown on othe website to a file on the computer**
 
 <img src="https://github.com/saewoonam/webserial-current-source/blob/main/images/upload.png" height=44> **upload settings from a file on the computer on to the website: *does not set the currents, press the computer to board button to set the currents***
+
+## Changing values in the table
+### Name
+The name can be edited by double clicking on the text
+### Value
+The value of the current can be changed by double clicking on the text
+The values are restricted to be between -100 and 100.  The wheel on a mouse can
+be used to increment the value.  The arrow keys also increment/decrement.   And, the value can be typed in 
+### Zero
+Board always supplies current.   To effectively disable a channel, click the
+box in the "zero" column to set the current to zero.  There is no ability to
+"open" circuit the channel.   It can only be efffectively shorted to gruond.
