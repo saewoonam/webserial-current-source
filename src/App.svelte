@@ -192,7 +192,7 @@
       // await write_value(i, data[i][1]);
       await write_value(i, JSON.stringify(data[i]));
       let lines = await readlines(3)
-      // console.log(lines)
+      console.log('send, got lines:', lines)
     }
   }
 </script>

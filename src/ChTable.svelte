@@ -3,7 +3,7 @@
 
 	let extras = {min: -100, max:100, style:"width: 5em;"}
 	let min = 1
-	let columns = ['Name', 'value', 'zero']
+	let columns = ['Name', 'value', 'bias']
 	export let data = [];
 // 	for (let i=0; i<3; i++) {
 // 		data.push(['ch'+i, i+1, false])
