@@ -9,7 +9,6 @@
 // 	for (let i=0; i<3; i++) {
 // 		data.push(['ch'+i, i+1, false])
 // 	}
-
 </script>
 <style>
 	tr td {
@@ -21,7 +20,7 @@
 	}
 </style>
 {#if data.length>0}
-  <h3> Board Name: <InlineInput2 bind:value={title} /></h3>
+  <h3> Board Name: <InlineInput2 on:blur bind:value={title} /></h3>
 {/if}
 <table>	
 	<tr>

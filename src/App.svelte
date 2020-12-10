@@ -14,12 +14,12 @@
   const dec = new TextDecoder();
   let data = []
   let board_name = "no name";
+  let old_name = board_name;
   /*
   for (let i=0; i<8; i++) {
     data.push(['ch'+i, i+1, false])
   }
   */
-  $: console.log('board name', board_name)
   async function readlines(num=1) {
     let total_msg = '';
     let lines;
@@ -32,7 +32,7 @@
       // console.log(value.length)
       // console.log(value);
       total_msg += dec.decode(value);
-      // console.log('values, total_msg', value, total_msg, total_msg.length);
+      console.log('values, total_msg', value, total_msg, total_msg.length);
       lines = total_msg.split(/\r\n/)
       // console.log('lines', lines, lines[lines.length-1])
 
@@ -105,6 +105,12 @@
     }
     return values;
   }
+  async function fetch_name() {
+    let msg = "N?\r\n";
+    let [value] = await query(msg)
+    let [first, ...second] = value.split(' ');
+    return second.join(' ');
+  }
   async function connect () {
     try {
       port = await navigator.serial.requestPort();
@@ -113,6 +119,8 @@
         await port.open({baudRate: 115200});
         console.log('port', port)
         data = await fetch_values()
+        board_name = await fetch_name();
+        old_name = board_name;
       }
       console.log('connect: data:', data)
       connected = true;
@@ -188,6 +196,17 @@
     let response = await readlines(1);
     console.log('response', response);
   }
+  async function send_cmd(cmd) {
+    console.log("SND one line command", cmd);
+    // console.log(JSON.stringify(data))
+    const writer = port.writable.getWriter();
+    let msg = cmd;
+    msg = enc.encode(msg);
+    await writer.write(msg);
+    writer.releaseLock();
+    let response = await readlines(2);
+    console.log('response', response);
+  }
   async function send() {
     console.log('send', data)
     for (let i=0; i<8; i++) {
@@ -195,6 +214,15 @@
       await write_value(i, JSON.stringify(data[i]));
       let lines = await readlines(3)
       console.log('send, got lines:', lines)
+    }
+  }
+  async function board_name_changed() {
+    if (old_name == board_name) {
+      console.log("No change in name")
+    } else {
+      console.log("board name edited", old_name, board_name)
+      old_name = board_name
+      await send_cmd("N "+board_name+"\r\n")
     }
   }
 </script>
@@ -261,7 +289,7 @@ json test
 tooltip="load setting to webpage from a computer file">
   <FileUp />
   </button>
-  <ChTable bind:title={board_name} {data}/>
+  <ChTable on:blur={board_name_changed} bind:title={board_name} {data}/>
 {:else}
   <h2> Web serial doesn't seem to be enabled in your browser. </h2>
   <h2> Make sure it is Chrome, Opera, or Edge. </h2>
