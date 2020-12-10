@@ -21,7 +21,7 @@
 	}
 </style>
 {#if data.length>0}
-<h3> Board Name: {title}</h3>
+  <h3> Board Name: <InlineInput2 bind:value={title} /></h3>
 {/if}
 <table>	
 	<tr>

@@ -13,12 +13,13 @@
   const enc = new TextEncoder();
   const dec = new TextDecoder();
   let data = []
-  let board_name = "";
+  let board_name = "no name";
   /*
   for (let i=0; i<8; i++) {
     data.push(['ch'+i, i+1, false])
   }
   */
+  $: console.log('board name', board_name)
   async function readlines(num=1) {
     let total_msg = '';
     let lines;
@@ -260,7 +261,7 @@ json test
 tooltip="load setting to webpage from a computer file">
   <FileUp />
   </button>
-  <ChTable title={board_name} {data}/>
+  <ChTable bind:title={board_name} {data}/>
 {:else}
   <h2> Web serial doesn't seem to be enabled in your browser. </h2>
   <h2> Make sure it is Chrome, Opera, or Edge. </h2>
