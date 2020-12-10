@@ -32,13 +32,13 @@
       // console.log(value.length)
       // console.log(value);
       total_msg += dec.decode(value);
-      console.log('values, total_msg', value, total_msg, total_msg.length);
+      // console.log('values, total_msg', value, total_msg, total_msg.length);
       lines = total_msg.split(/\r\n/)
       // console.log('lines', lines, lines[lines.length-1])
 
       if (lines[lines.length-1].length==0 && lines.length==(num+1)) {
           // check lines.lenght==(num+1) because there is an extra empty string at the end
-          console.log('got_all')
+          // console.log('got_all')
           got_all = true;
       }
       // console.log(total_msg)
