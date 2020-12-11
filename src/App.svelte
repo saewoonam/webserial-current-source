@@ -143,8 +143,8 @@
     console.log(ports);
   }
   async function fetchtest() {
-    let values = await fetch_values();
-    console.log(values)
+    data = await fetch_values();
+    console.log(data)
   }
   async function save_computer() {
     console.log("save to computer")
