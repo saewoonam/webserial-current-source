@@ -19,7 +19,8 @@ let inputEl;
 let label;
 let selectedIndex = options.findIndex(o => o.value === value);
 let e;
-	
+let step = 1;
+  
 // Computed
 $: isText = type === 'text';
 $: isNumber = type === 'number';
@@ -48,21 +49,37 @@ const handleInput = (e) => {
 
 const handleEnter = (e) => {
   if (e.keyCode === 13) inputEl.blur();
+  if ((e.key == 'ArrowRight') && (e.shiftKey)) {
+    console.log("step / 10");
+    step = step/10;
+    if (step<2.5/65535) step = 2.5/65535
+  }
+  if ((e.key == 'ArrowLeft') && (e.shiftKey)) {
+    console.log("step * 10");
+    if (step<=3/65535) {
+      step = 0.0001;
+    } else {
+      step *= 10;
+    }
+    if (step>1) {
+      step = 1;
+    }
+  }
 };
 
 const handleBlur = (e) => {
   toggle();
-	console.log('blur', e)
-	if (e.srcElement.max!="") {
-		let max = Number(e.srcElement.max)
-		if (value>max) value = max;
-	}
-	if (e.srcElement.min!="") {
-		let min = Number(e.srcElement.min)
-		if (value<min) value = min;
-	}
+  console.log('blur', e)
+  if (e.srcElement.max!="") {
+    let max = Number(e.srcElement.max)
+    if (value>max) value = max;
+  }
+  if (e.srcElement.min!="") {
+    let min = Number(e.srcElement.min)
+    if (value<min) value = min;
+  }
   dispatch('blur', value);
-	
+  
 };
 
 const handleChange = (e) => {
@@ -70,6 +87,14 @@ const handleChange = (e) => {
   value = options[selectedIndex].value;
 };
 </script>
+<style>
+  .input {
+    width: 8em;
+  }
+  .checkbox {
+    width: auto;
+  }
+</style>
 
 {#if editing && (isText || isNumber)}
   <input
@@ -78,7 +103,8 @@ const handleChange = (e) => {
     {type}
     {value}
     {placeholder}
-		{...extras}
+    {...extras}
+    on:mousewheel={()=>{;}}
     on:input={handleInput}
     on:keyup={handleEnter}
     on:blur={handleBlur}>
@@ -111,7 +137,7 @@ const handleChange = (e) => {
     {/each}
   </select>
 {:else}
-  <span
+  <div
     class={labelClasses}
     on:click={toggle}>
     {label}
@@ -120,5 +146,5 @@ const handleChange = (e) => {
         <span>&#9660;</span>
       {/if}
     </slot>
-  </span>
+  </div>
 {/if}
