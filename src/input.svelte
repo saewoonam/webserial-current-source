@@ -86,6 +86,22 @@ const handleChange = (e) => {
   selectedIndex = placeholder ? e.target.selectedIndex - 1 : e.target.selectedIndex;
   value = options[selectedIndex].value;
 };
+
+  function wheel(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.deltaY>0) {
+      value = Number(e.target.value)+step;
+      if (value>100) value = 100;
+      value = Number(value.toFixed(5));
+    }
+    else {
+      value = Number(e.target.value)-step;
+      if (value<-100) value = -100;
+      value = Number(value.toFixed(5));
+    }
+    console.log('value', value, e, e.target.value)
+  }
 </script>
 <style>
   .input {
@@ -104,7 +120,7 @@ const handleChange = (e) => {
     {value}
     {placeholder}
     {...extras}
-    on:mousewheel={()=>{;}}
+    on:mousewheel|stopPropagation={wheel}
     on:input={handleInput}
     on:keyup={handleEnter}
     on:blur={handleBlur}>
