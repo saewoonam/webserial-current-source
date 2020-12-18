@@ -15,6 +15,7 @@
   let data = []
   let board_name = "no name";
   let old_name = board_name;
+  let advanced = true;
   /*
   for (let i=0; i<8; i++) {
     data.push(['ch'+i, i+1, false])
@@ -289,7 +290,8 @@ json test
 tooltip="load setting to webpage from a computer file">
   <FileUp />
   </button>
-  <ChTable on:blur={board_name_changed} bind:title={board_name} {data}/>
+  <ChTable on:blur={board_name_changed} bind:title={board_name}
+bind:advanced={advanced} {data}/>
 {:else}
   <h2> Web serial doesn't seem to be enabled in your browser. </h2>
   <h2> Make sure it is Chrome, Opera, or Edge. </h2>
