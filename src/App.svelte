@@ -1,11 +1,9 @@
 <script>
-  import {download, upload, computer, right, circle_up} from './AppIcons.js'
+  import {download, upload, computer, right, circle_up, artboard, fileup,
+    filedown, floppy, cog} from './AppIcons.js'
   import ChTable from './ChTable.svelte';
   import SvgIcon from './SvgIcon.svelte';
-  import Board from './artboard.svelte';
-  import FileDown from './file_down.svelte';
-  import FileUp from './file_up.svelte';
-  import Floppy from './floppy.svelte';
+  import Settings from './settings.svelte';
   let fileHandle;
   let port;
   let reader, writer, encoder, decoder;
@@ -13,14 +11,14 @@
   const enc = new TextEncoder();
   const dec = new TextDecoder();
   let data = []
+  let old_data;
   let board_name = "no name";
   let old_name = board_name;
-  let advanced = true;
-  /*
-  for (let i=0; i<8; i++) {
-    data.push(['ch'+i, i+1, false])
-  }
-  */
+  let show_settings = false;
+  let advanced=true;
+  let on_blur  = false;
+  let send_config = 2;
+
   async function readlines(num=1) {
     let total_msg = '';
     let lines;
@@ -122,11 +120,13 @@
         data = await fetch_values()
         board_name = await fetch_name();
         old_name = board_name;
+        old_data = JSON.parse(JSON.stringify(data));  
       }
       console.log('connect: data:', data)
       connected = true;
     } catch (e) {
       console.log("error message", e.message)
+      if (port) port.close();
     }
   }
   async function disconnect () {
@@ -208,22 +208,65 @@
     let response = await readlines(2);
     console.log('response', response);
   }
-  async function send() {
-    console.log('send', data)
-    for (let i=0; i<8; i++) {
-      // await write_value(i, data[i][1]);
+  async function send_one(i) {
       await write_value(i, JSON.stringify(data[i]));
       let lines = await readlines(3)
       console.log('send, got lines:', lines)
+  }
+  async function send() {
+    console.log('send', data)
+    for (let i=0; i<8; i++) {
+      await send_one(i)
     }
   }
-  async function board_name_changed() {
-    if (old_name == board_name) {
-      console.log("No change in name")
-    } else {
+  function find_change() {
+    console.log('check if table changed')
+    let found = [];
+    console.log('change')
+    for (let r=0; r<8; r++) {
+      for(let c=0; c<4; c++) {
+        if (data[r][c] != old_data[r][c]) {
+          console.log('different',r,c,data[r][c]);
+          found = [r, c];
+        }
+      }
+    }
+    old_data = JSON.parse(JSON.stringify(data));	
+    return found;
+  }
+
+  async function handle_blur() {
+    // First check if board name changed
+    if (old_name != board_name) {
       console.log("board name edited", old_name, board_name)
       old_name = board_name
       await send_cmd("N "+board_name+"\r\n")
+    } else {
+      console.log('send_config', send_config);
+      if (send_config==2) {
+        let found = find_change()
+        if (found.length>0) {
+          console.log('found change in row', found[0])
+          await send_one(found[0])
+        } else {
+          console.log('no diff')
+        }
+      }
+    }
+  }
+
+  $: async () => {
+    if(data) {
+      console.log('data changed')
+      if (send_config==3) {
+        let found = find_change()
+        if (found.length>0) {
+          console.log('found change in row', found[0])
+          await send_one(found[0])
+        } else {
+          console.log('no diff')
+        }
+      }
     }
   }
 </script>
@@ -260,20 +303,21 @@ button[tooltip]:focus::after {
 <button on:click={connect} hidden={connected}>
   connect
 </button>
+{#if (!show_settings) }
 <button on:click={disconnect} hidden={!connected}>
   disconnect
 </button>
   <button on:click={fetchtest} hidden={!connected}
   tooltip="Read settings from the board">
-  <Board />  <SvgIcon d={right} /> <SvgIcon d={computer} />
+  <SvgIcon d={artboard} />  <SvgIcon d={right} /> <SvgIcon d={computer} />
 </button>
   <button on:click={send} hidden={!connected}
   tooltip="Send config to board and bias with these values">
-  <SvgIcon d={computer} /> <SvgIcon d={right} /> <Board />
+  <SvgIcon d={computer} /> <SvgIcon d={right} /> <SvgIcon d={artboard} />
 </button>
   <button on:click={save_board} hidden={!connected} 
   tooltip="save settings to board flash">
-  <Board /><Floppy />
+  <SvgIcon d={artboard} /><SvgIcon d={floppy} />
   </button>
 <!--
   <button on:click={writetest} hidden={!connected}>
@@ -284,14 +328,29 @@ json test
   </button>
 -->
   <button on:click={save_computer} hidden={!connected} tooltip="download settings to  a file">
-  <FileDown />
+  <SvgIcon d={filedown} />
   </button>
   <button on:click={load_from_computer} hidden={!connected}
 tooltip="load setting to webpage from a computer file">
-  <FileUp />
+  <SvgIcon d={fileup} />
   </button>
-  <ChTable on:blur={board_name_changed} bind:title={board_name}
-bind:advanced={advanced} {data}/>
+  <button on:click={()=>show_settings=true} hidden={!connected}
+tooltip="change gui settings">
+  <SvgIcon d={cog} />
+  </button>
+  <ChTable on:blur={handle_blur} bind:title={board_name}
+bind:advanced={advanced} bind:data={data}/>
+<pre style="background: #eee">{JSON.stringify(data)}</pre>
+
+{:else}
+{#if connected}
+  <h1> settings </h1>
+  <Settings bind:show_dac_offset={advanced} bind:selected_option={send_config}/>
+  <button on:click={()=>{show_settings=false}}>
+  Done
+  </button>
+{/if}
+{/if}
 {:else}
   <h2> Web serial doesn't seem to be enabled in your browser. </h2>
   <h2> Make sure it is Chrome, Opera, or Edge. </h2>

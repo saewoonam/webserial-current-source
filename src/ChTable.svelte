@@ -1,5 +1,7 @@
 <script>
   import InlineInput2 from './input.svelte';
+  import { tick, createEventDispatcher } from 'svelte';
+  const dispatch = createEventDispatcher();
 
   let extras = {min: -100, max:100, style:"width: 8em;"}
   let extras_dac_offset = {min:0,  max:65535}
@@ -8,6 +10,10 @@
   export let title='Unknown'
   export let data = [];
   export let advanced = true;
+  function click() {
+    console.log('click')
+    dispatch('blur')
+  }
 //  for (let i=0; i<3; i++) {
 //    data.push(['ch'+i, i+1, false])
 //  }
@@ -34,11 +40,11 @@
   </tr>
   {#each data as row}
   <tr>
-    <td><InlineInput2 bind:value={row[0]} extras={{style:"width: 8em;"}} labelClasses="input"/></td>
-    <td><InlineInput2 type='number' bind:value={row[1]} extras={extras} labelClasses="input"/></td>
-    <td style=""><input type=checkbox bind:checked={row[2]} labelClasses="checkbox"/></td>
+    <td><InlineInput2 on:blur bind:value={row[0]} extras={{style:"width: 8em;"}} labelClasses="input"/></td>
+    <td><InlineInput2 on:blur type='number' bind:value={row[1]} extras={extras} labelClasses="input"/></td>
+    <td style=""><input on:click={click} type=checkbox bind:checked={row[2]} labelClasses="checkbox"/></td>
     {#if (advanced && row.length>=3)}
-    <td><InlineInput2 type='number' bind:value={row[3]}
+    <td><InlineInput2 on:blur type='number' bind:value={row[3]}
         extras={extras_dac_offset} labelClasses="input"/></td>
     {/if}
   </tr>

@@ -69,7 +69,7 @@ const handleEnter = (e) => {
 
 const handleBlur = (e) => {
   toggle();
-  console.log('blur', e)
+  console.log('blur input', e)
   if (e.srcElement.max!="") {
     let max = Number(e.srcElement.max)
     if (value>max) value = max;
