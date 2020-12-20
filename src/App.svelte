@@ -19,6 +19,7 @@
   let serial_instance = serial_wrapper();
   let ready = false;
   let ready_count = 0;
+  let readonly;
   async function connect () {
     [connected,port] = await serial_instance.connect(); 
     // read config and name from board
@@ -28,7 +29,8 @@
     console.log('old_data', old_data, old_data==data);
     board_name = await serial_instance.fetch_name();
     old_name = board_name;
-    console.log('connected', connected, port);
+    readonly = await fetch_rw();
+    console.log('connected', connected, port, readonly);
   }
   async function disconnect () {
     try {
@@ -50,6 +52,12 @@
     data = data;
     old_data = JSON.parse(JSON.stringify(data));
     console.log(data)
+  }
+  async function fetch_rw() {
+    let msg = "R?\r\n";
+    let [value] = await serial_instance.query(msg)
+    let [first, ...second] = value.split(' ');
+    return second.join(' ')=='True';
   }
   async function write_value(channel, value) {
     let msg = channel + ' ' + value + '\r\n';
@@ -231,7 +239,7 @@ button[tooltip]:focus::after {
   tooltip="Send config to board and bias with these values">
   <SvgIcon d={computer} /> <SvgIcon d={right} /> <SvgIcon d={artboard} />
 </button>
-  <button on:click={save_board} hidden={!connected} 
+  <button on:click={save_board} hidden={(!connected)||(readonly)} 
   tooltip="save settings to board flash">
   <SvgIcon d={artboard} /><SvgIcon d={floppy} />
   </button>
