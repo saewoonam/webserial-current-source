@@ -11,8 +11,9 @@
   export let data = [];
   export let advanced = true;
   function click() {
-    console.log('click')
-    dispatch('blur')
+    console.log('click', data[0])
+    // data = data
+    dispatch('blur', 1)
   }
 //  for (let i=0; i<3; i++) {
 //    data.push(['ch'+i, i+1, false])

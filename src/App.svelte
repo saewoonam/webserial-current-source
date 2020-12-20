@@ -4,12 +4,10 @@
   import ChTable from './ChTable.svelte';
   import SvgIcon from './SvgIcon.svelte';
   import Settings from './settings.svelte';
+  import {serial_wrapper} from './serial_wrapper.js';
   let fileHandle;
   let port;
-  let reader, writer, encoder, decoder;
   let connected = false;
-  const enc = new TextEncoder();
-  const dec = new TextDecoder();
   let data = []
   let old_data;
   let board_name = "no name";
@@ -18,134 +16,44 @@
   let advanced=true;
   let on_blur  = false;
   let send_config = 2;
-
-  async function readlines(num=1) {
-    let total_msg = '';
-    let lines;
-    let got_all = false;
-    // console.log('readlines')
-    const reader = port.readable.getReader();
-    // console.log('loop until get all lines')
-    while (true) {
-      const { value, done } = await reader.read();
-      // console.log(value.length)
-      // console.log(value);
-      total_msg += dec.decode(value);
-      // console.log('values, total_msg', value, total_msg, total_msg.length);
-      lines = total_msg.split(/\r\n/)
-      // console.log('lines', lines, lines[lines.length-1])
-
-      if (lines[lines.length-1].length==0 && lines.length==(num+1)) {
-          // check lines.lenght==(num+1) because there is an extra empty string at the end
-          // console.log('got_all')
-          got_all = true;
-      }
-      // console.log(total_msg)
-      if (done || got_all) {
-        lines = lines.filter(item => item.length>0)
-        reader.releaseLock();
-        // console.log('done')
-        break;
-      }
-    }
-    return lines;
-  }
-
-  async function query(msg, number_lines=1) {
-    console.log('query', msg)
-    const writer = port.writable.getWriter();
-    msg = enc.encode(msg);
-    await writer.write(msg);
-    writer.releaseLock();
-    let value = await readlines(number_lines+1);
-    // console.log(value)
-    let cmd
-    [cmd, ...value] = value;
-    // console.log(value)
-    return value
-  }
-
-  async function write_value(channel, value) {
-    const writer = port.writable.getWriter();
-    let msg = channel + ' ' + value + '\r\n';
-    msg = enc.encode(msg);
-    await writer.write(msg);
-    writer.releaseLock();
-  }
-
-  async function jsontest() {
-    const writer = port.writable.getWriter();
-    let msg = 'C ' + JSON.stringify(data) + '\r\n';
-    msg = enc.encode(msg);
-    await writer.write(msg);
-    writer.releaseLock();
-    let lines = await readlines(3)
-    console.log(lines)
-
-  }
-  async function writetest() {
-    await write_value(1, 1);
-    let lines = await readlines(3)
-    console.log(lines)
-  }
-
-  async function fetch_values() {
-    let values = []
-    for(let i=0; i<8; i++) {
-      let msg = i+"?\r\n"
-      // console.log('msg', msg);
-      let [value] = await query(msg)
-      let [first, ...second] = value.split(' ');
-      second = second.join(' ');
-      value = JSON.parse(second)
-      values.push(value)
-      // value = Number(value[1])
-      // values.push(value)
-    }
-    return values;
-  }
-  async function fetch_name() {
-    let msg = "N?\r\n";
-    let [value] = await query(msg)
-    let [first, ...second] = value.split(' ');
-    return second.join(' ');
-  }
+  let serial_instance = serial_wrapper();
+  let ready = false;
+  let ready_count = 0;
   async function connect () {
-    try {
-      port = await navigator.serial.requestPort();
-      console.log(port.getInfo())
-      if (port) {
-        await port.open({baudRate: 115200});
-        console.log('port', port)
-        data = await fetch_values()
-        board_name = await fetch_name();
-        old_name = board_name;
-        old_data = JSON.parse(JSON.stringify(data));  
-      }
-      console.log('connect: data:', data)
-      connected = true;
-    } catch (e) {
-      console.log("error message", e.message)
-      if (port) port.close();
-    }
+    [connected,port] = await serial_instance.connect(); 
+    // read config and name from board
+    await fetch_from_board()
+    // data = await serial_instance.fetch_values();
+    // old_data = JSON.parse(JSON.stringify(data));
+    console.log('old_data', old_data, old_data==data);
+    board_name = await serial_instance.fetch_name();
+    old_name = board_name;
+    console.log('connected', connected, port);
   }
   async function disconnect () {
     try {
       port.close();
       data = [];
       data = data;
+      board_name = ''
+      old_name = ''
       connected = false;
     } catch (e) {
       console.log("error message", e.message)
     }
   }
-  async function getPorts() {
-    const ports = await navigator.serial.getPorts();
-    console.log(ports);
-  }
-  async function fetchtest() {
-    data = await fetch_values();
+  async function fetch_from_board() {
+    data = await serial_instance.fetch_values();
+    for (let row of data) {
+      if (row.length == 3) row.push(32768)
+    }
+    data = data;
+    old_data = JSON.parse(JSON.stringify(data));
     console.log(data)
+  }
+  async function write_value(channel, value) {
+    let msg = channel + ' ' + value + '\r\n';
+    serial_instance.write(msg);
   }
   async function save_computer() {
     console.log("save to computer")
@@ -181,37 +89,27 @@
     console.log('fileHandle', fileHandle[0]);
     const file = await fileHandle[0].getFile();
     const contents = await file.text();
-    // Need to check that that JSON has the write schema
+    // Need to check that that JSON has the right schema
     data = JSON.parse(contents)
     data = data // refreshes html page
     console.log(data)
   }
   async function save_board() {
     console.log("save on board")
-    // console.log(JSON.stringify(data))
-    const writer = port.writable.getWriter();
-    let msg = 'J\r\n';
-    msg = enc.encode(msg);
-    await writer.write(msg);
-    writer.releaseLock();
-    let response = await readlines(1);
+    let response = serial_instance.readlines(1);
     console.log('response', response);
   }
   async function send_cmd(cmd) {
     console.log("SND one line command", cmd);
-    // console.log(JSON.stringify(data))
-    const writer = port.writable.getWriter();
-    let msg = cmd;
-    msg = enc.encode(msg);
-    await writer.write(msg);
-    writer.releaseLock();
-    let response = await readlines(2);
+    serial_instance.write(cmd);
+    let response = serial_instance.readlines(2);
     console.log('response', response);
   }
   async function send_one(i) {
       await write_value(i, JSON.stringify(data[i]));
-      let lines = await readlines(3)
+      let lines = await serial_instance.readlines(3)
       console.log('send, got lines:', lines)
+      return(lines);
   }
   async function send() {
     console.log('send', data)
@@ -219,43 +117,60 @@
       await send_one(i)
     }
   }
-  function find_change() {
-    console.log('check if table changed')
+  function find_change(a, b) {
     let found = [];
-    console.log('change')
     for (let r=0; r<8; r++) {
       for(let c=0; c<4; c++) {
-        if (data[r][c] != old_data[r][c]) {
-          console.log('different',r,c,data[r][c]);
+        // console.log('different',r,c,a[r][c], b[r][c], a[r][c]!=b[r][c]);
+        if (a[r][c] != b[r][c]) {
           found = [r, c];
+          console.log('found', r, c);
+          return found;
         }
       }
     }
-    old_data = JSON.parse(JSON.stringify(data));	
     return found;
   }
 
-  async function handle_blur() {
+  async function handle_blur(e) {
     // First check if board name changed
     if (old_name != board_name) {
       console.log("board name edited", old_name, board_name)
       old_name = board_name
       await send_cmd("N "+board_name+"\r\n")
     } else {
-      console.log('send_config', send_config);
       if (send_config==2) {
-        let found = find_change()
+        console.log('blur/click')
+        if (e.detail==1) {
+          ready_count = 2;
+          ready = true
+        }
+        let found = find_change(old_data, data);
         if (found.length>0) {
-          console.log('found change in row', found[0])
+          console.log('blur/click found change in row', found)
           await send_one(found[0])
-        } else {
-          console.log('no diff')
+          old_data = JSON.parse(JSON.stringify(data));
         }
       }
     }
   }
-
-  $: async () => {
+  $: if (data.length>0) {
+      if (ready) {
+        console.log('data',ready, data[0], old_data[0])
+        ready_count--;
+        let found = find_change(old_data, data);
+        if (found.length>0) {
+          console.log('found change in row', found)
+          send_one(found[0]).then(res=>console.log(res));
+        }
+        if (ready_count==0) {
+          old_data = JSON.parse(JSON.stringify(data));
+          ready = false;
+        }
+      }
+  }
+  /*
+  $: () => {
     if(data) {
       console.log('data changed')
       if (send_config==3) {
@@ -269,6 +184,7 @@
       }
     }
   }
+   */
 </script>
 <style>
 button[tooltip] {
@@ -307,7 +223,7 @@ button[tooltip]:focus::after {
 <button on:click={disconnect} hidden={!connected}>
   disconnect
 </button>
-  <button on:click={fetchtest} hidden={!connected}
+  <button on:click={fetch_from_board} hidden={!connected}
   tooltip="Read settings from the board">
   <SvgIcon d={artboard} />  <SvgIcon d={right} /> <SvgIcon d={computer} />
 </button>
@@ -319,14 +235,6 @@ button[tooltip]:focus::after {
   tooltip="save settings to board flash">
   <SvgIcon d={artboard} /><SvgIcon d={floppy} />
   </button>
-<!--
-  <button on:click={writetest} hidden={!connected}>
-write test
-  </button>
-  <button on:click={jsontest} hidden={!connected}>
-json test
-  </button>
--->
   <button on:click={save_computer} hidden={!connected} tooltip="download settings to  a file">
   <SvgIcon d={filedown} />
   </button>

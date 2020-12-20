@@ -88,17 +88,19 @@ const handleChange = (e) => {
 };
 
   function wheel(e) {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.deltaY>0) {
-      value = Number(e.target.value)+step;
-      if (value>100) value = 100;
-      value = Number(value.toFixed(5));
-    }
-    else {
-      value = Number(e.target.value)-step;
-      if (value<-100) value = -100;
-      value = Number(value.toFixed(5));
+    if (e.target.type=='number') {
+      e.preventDefault()
+      e.stopPropagation()
+      if ((e.deltaY>0) && (e.target.max.length>0)) {
+        value = Number(e.target.value)+step;
+        if (value>Number(e.target.max)) value = Number(e.target.max);
+        value = Number(value.toFixed(5));
+      }
+      if ((e.deltaY<0)&&(e.target.min.length>0)) {
+        value = Number(e.target.value)-step;
+        if (value<Number(e.target.min)) value = Number(e.target.min);
+        value = Number(value.toFixed(5));
+      }
     }
     console.log('value', value, e, e.target.value)
   }
