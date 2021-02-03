@@ -47,7 +47,7 @@ export function serial_wrapper(extras) {
     while (true) {
       const { value, done } = await reader.read();
       // console.log(value.length)
-      // console.log(value);
+      // console.log(dec.decode(value));
       total_msg += dec.decode(value);
       // console.log('values, total_msg', value, total_msg, total_msg.length);
       lines = total_msg.split(/\r\n/)
@@ -62,7 +62,7 @@ export function serial_wrapper(extras) {
       if (done || got_all) {
         lines = lines.filter(item => item.length>0)
         reader.releaseLock();
-        // console.log('done')
+        // console.log('release reader lock')
         break;
       }
     }

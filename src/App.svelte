@@ -104,6 +104,7 @@
   }
   async function save_board() {
     console.log("save on board")
+    serial_instance.write('J\r\n');
     let response = serial_instance.readlines(1);
     console.log('response', response);
   }
@@ -116,7 +117,7 @@
   async function send_one(i) {
       await write_value(i, JSON.stringify(data[i]));
       let lines = await serial_instance.readlines(3)
-      console.log('send, got lines:', lines)
+      console.log('send_one: got from device:', lines)
       return(lines);
   }
   async function send() {
@@ -148,7 +149,7 @@
       await send_cmd("N "+board_name+"\r\n")
     } else {
       if (send_config==2) {
-        console.log('blur/click')
+        console.log('App.svelte handle blur/click')
         if (e.detail==1) {
           ready_count = 2;
           ready = true
@@ -164,12 +165,13 @@
   }
   $: if (data.length>0) {
       if (ready) {
-        console.log('data',ready, data[0], old_data[0])
-        ready_count--;
+        // console.log('data',ready, data[0], old_data[0])
+        // somehow this gets called twice... 1st no change, 2nd with change
+        ready_count--; 
         let found = find_change(old_data, data);
         if (found.length>0) {
-          console.log('found change in row', found)
-          send_one(found[0]).then(res=>console.log(res));
+          // console.log('found change in row', found)
+          send_one(found[0]) //.then(res=>console.log(res));
         }
         if (ready_count==0) {
           old_data = JSON.parse(JSON.stringify(data));
