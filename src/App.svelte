@@ -142,6 +142,7 @@
   }
 
   async function handle_blur(e) {
+    console.log('App.svelte handle blur/click')
     // First check if board name changed
     if (old_name != board_name) {
       console.log("board name edited", old_name, board_name)
@@ -149,7 +150,6 @@
       await send_cmd("N "+board_name+"\r\n")
     } else {
       if (send_config==2) {
-        console.log('App.svelte handle blur/click')
         if (e.detail==1) {
           ready_count = 2;
           ready = true

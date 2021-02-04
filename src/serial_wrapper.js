@@ -41,13 +41,13 @@ export function serial_wrapper(extras) {
     let total_msg = '';
     let lines;
     let got_all = false;
-    // console.log('readlines')
+    console.log('readlines')
     const reader = port.readable.getReader();
     // console.log('loop until get all lines')
     while (true) {
       const { value, done } = await reader.read();
       // console.log(value.length)
-      // console.log(dec.decode(value));
+      console.log(dec.decode(value));
       total_msg += dec.decode(value);
       // console.log('values, total_msg', value, total_msg, total_msg.length);
       lines = total_msg.split(/\r\n/)
