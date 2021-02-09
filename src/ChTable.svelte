@@ -10,10 +10,10 @@
   export let title='Unknown'
   export let data = [];
   export let advanced = true;
-  function click() {
-    console.log('click', data[0])
+  function click(event) {
+    console.log('click', event)
     // data = data
-    dispatch('blur', 1)
+    dispatch('blur', data[0])
   }
 //  for (let i=0; i<3; i++) {
 //    data.push(['ch'+i, i+1, false])
@@ -43,7 +43,7 @@
   <tr>
     <td><InlineInput2 on:blur bind:value={row[0]} extras={{style:"width: 8em;"}} labelClasses="input"/></td>
     <td><InlineInput2 on:blur type='number' bind:value={row[1]} extras={extras} labelClasses="input"/></td>
-    <td style=""><input on:click={click} type=checkbox bind:checked={row[2]} labelClasses="checkbox"/></td>
+    <td style=""><input on:change={click} type=checkbox bind:checked={row[2]} labelClasses="checkbox"/></td>
     {#if (advanced && row.length>=3)}
     <td><InlineInput2 on:blur type='number' bind:value={row[3]}
         extras={extras_dac_offset} labelClasses="input"/></td>

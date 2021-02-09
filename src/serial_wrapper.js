@@ -21,6 +21,7 @@ export function serial_wrapper(extras) {
     }
   }
   async function write(msg) {
+    // console.log('trying to write:', msg)
     const writer = port.writable.getWriter();
     msg = enc.encode(msg);
     await writer.write(msg);
@@ -42,7 +43,12 @@ export function serial_wrapper(extras) {
     let lines;
     let got_all = false;
     console.log('readlines')
-    const reader = port.readable.getReader();
+    let reader;
+    if (port.readable) {
+      console.log('port readable');
+    }
+    reader = await port.readable.getReader();
+    console.log('reader', reader)
     // console.log('loop until get all lines')
     while (true) {
       const { value, done } = await reader.read();
@@ -87,6 +93,26 @@ export function serial_wrapper(extras) {
     return values;
   }
 
+  async function fetch_value(i) {
+      let msg = i+"?\r\n"
+      // console.log('fetch_value: msg', msg);
+      let [value] = await query(msg)
+      let [first, ...second] = value.split(' ');
+      second = second.join(' ');
+      value = JSON.parse(second)
+    return value;
+  }
+
+  async function get_status() {
+      let msg = "STATUS?\r\n"
+      // console.log('fetch_value: msg', msg);
+      let [value] = await query(msg)
+      let [first, ...second] = value.split(' ');
+      console.log(second)
+      value = Number(second[0])
+    return value;
+  }
+
   const obj = {
     connect: async () => {
       try {
@@ -104,6 +130,8 @@ export function serial_wrapper(extras) {
         }
         // console.log('connect: data:', data)
         connected = true;
+        let status_byte = await get_status()
+        console.log('status', status_byte)
       } catch (e) {
         console.log("error message", e.message)
         if (port) port.close();
@@ -115,6 +143,8 @@ export function serial_wrapper(extras) {
     query: query,
     readlines: readlines,
     fetch_values: fetch_values,
+    fetch_value: fetch_value,
+    get_status: get_status,
     fetch_name: async()=>{
       let msg = "N?\r\n";
       let [value] = await query(msg)

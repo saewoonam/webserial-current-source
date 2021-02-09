@@ -20,6 +20,7 @@
   let ready = false;
   let ready_count = 0;
   let readonly;
+  let power = true
   async function connect () {
     [connected,port] = await serial_instance.connect(); 
     // read config and name from board
@@ -52,6 +53,10 @@
     data = data;
     old_data = JSON.parse(JSON.stringify(data));
     console.log(data)
+
+    const status_byte = await serial_instance.get_status();
+    power = (status_byte==7)
+    console.log('status', status_byte, power)
   }
   async function fetch_rw() {
     let msg = "R?\r\n";
@@ -105,8 +110,8 @@
   async function save_board() {
     console.log("save on board")
     serial_instance.write('J\r\n');
-    let response = serial_instance.readlines(1);
-    console.log('response', response);
+    let response = await serial_instance.readlines(1);
+    console.log('save on board response', response);
   }
   async function send_cmd(cmd) {
     console.log("SND one line command", cmd);
@@ -115,7 +120,16 @@
     console.log('response', response);
   }
   async function send_one(i) {
+      const status_byte = await serial_instance.get_status();
+      power = (status_byte==7)
+      console.log('status', status_byte, power)
+      if (!power) {
+        console.log('not written, no power');
+        return;
+      }
+      console.log('send_one write')
       await write_value(i, JSON.stringify(data[i]));
+      console.log('send_one readback response')
       let lines = await serial_instance.readlines(3)
       console.log('send_one: got from device:', lines)
       return(lines);
@@ -133,7 +147,7 @@
         // console.log('different',r,c,a[r][c], b[r][c], a[r][c]!=b[r][c]);
         if (a[r][c] != b[r][c]) {
           found = [r, c];
-          console.log('found', r, c);
+          console.log('find_change found', r, c);
           return found;
         }
       }
@@ -142,7 +156,7 @@
   }
 
   async function handle_blur(e) {
-    console.log('App.svelte handle blur/click')
+    console.log('App.svelte handle blur/click', e.detail)
     // First check if board name changed
     if (old_name != board_name) {
       console.log("board name edited", old_name, board_name)
@@ -150,51 +164,36 @@
       await send_cmd("N "+board_name+"\r\n")
     } else {
       if (send_config==2) {
-        if (e.detail==1) {
-          ready_count = 2;
-          ready = true
-        }
-        let found = find_change(old_data, data);
-        if (found.length>0) {
-          console.log('blur/click found change in row', found)
-          await send_one(found[0])
-          old_data = JSON.parse(JSON.stringify(data));
-        }
+        ready = true;
       }
     }
   }
-  $: if (data.length>0) {
+  async function send_one_wrapper(found) {
+    let res;
+    res = await serial_instance.fetch_value(found[0])
+    console.log('before', res)
+    res= await send_one(found[0])
+    // console.log(res)
+    res = await serial_instance.fetch_value(found[0])
+    console.log('after', res)
+    old_data = JSON.parse(JSON.stringify(data));
+  }
+
+  $: { 
+    if(data.length>0) {
       if (ready) {
-        // console.log('data',ready, data[0], old_data[0])
-        // somehow this gets called twice... 1st no change, 2nd with change
-        ready_count--; 
+        console.log('$')
         let found = find_change(old_data, data);
+        console.log('found', found)
         if (found.length>0) {
-          // console.log('found change in row', found)
-          send_one(found[0]) //.then(res=>console.log(res));
-        }
-        if (ready_count==0) {
-          old_data = JSON.parse(JSON.stringify(data));
-          ready = false;
-        }
-      }
-  }
-  /*
-  $: () => {
-    if(data) {
-      console.log('data changed')
-      if (send_config==3) {
-        let found = find_change()
-        if (found.length>0) {
-          console.log('found change in row', found[0])
-          await send_one(found[0])
-        } else {
-          console.log('no diff')
+          console.log('found change in row', found)
+          send_one_wrapper(found)
+          ready = false
         }
       }
     }
   }
-   */
+
 </script>
 <style>
 button[tooltip] {
@@ -256,10 +255,13 @@ tooltip="load setting to webpage from a computer file">
 tooltip="change gui settings">
   <SvgIcon d={cog} />
   </button>
+  {#if power}
   <ChTable on:blur={handle_blur} bind:title={board_name}
 bind:advanced={advanced} bind:data={data}/>
 <pre style="background: #eee">{JSON.stringify(data)}</pre>
-
+  {:else}
+  <h2> Check if current source has power </h2>
+  {/if}
 {:else}
 {#if connected}
   <h1> settings </h1>

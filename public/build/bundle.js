@@ -1616,7 +1616,7 @@ var app = (function () {
     			h3 = element("h3");
     			t = text("Board Name: ");
     			create_component(inlineinput2.$$.fragment);
-    			add_location(h3, file$1, 31, 2, 745);
+    			add_location(h3, file$1, 31, 2, 754);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, h3, anchor);
@@ -1739,7 +1739,7 @@ var app = (function () {
     		c: function create() {
     			th = element("th");
     			t = text(t_value);
-    			add_location(th, file$1, 37, 4, 891);
+    			add_location(th, file$1, 37, 4, 900);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, th, anchor);
@@ -1796,7 +1796,7 @@ var app = (function () {
     			td = element("td");
     			create_component(inlineinput2.$$.fragment);
     			attr_dev(td, "class", "svelte-14k6e1x");
-    			add_location(td, file$1, 47, 4, 1335);
+    			add_location(td, file$1, 47, 4, 1345);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, td, anchor);
@@ -1924,16 +1924,16 @@ var app = (function () {
     			if (if_block) if_block.c();
     			t3 = space();
     			attr_dev(td0, "class", "svelte-14k6e1x");
-    			add_location(td0, file$1, 43, 4, 972);
+    			add_location(td0, file$1, 43, 4, 981);
     			attr_dev(td1, "class", "svelte-14k6e1x");
-    			add_location(td1, file$1, 44, 4, 1081);
+    			add_location(td1, file$1, 44, 4, 1090);
     			attr_dev(input, "type", "checkbox");
     			attr_dev(input, "labelclasses", "checkbox");
-    			add_location(input, file$1, 45, 17, 1202);
+    			add_location(input, file$1, 45, 17, 1211);
     			attr_dev(td2, "class", "svelte-14k6e1x");
-    			add_location(td2, file$1, 45, 4, 1189);
+    			add_location(td2, file$1, 45, 4, 1198);
     			attr_dev(tr, "class", "svelte-14k6e1x");
-    			add_location(tr, file$1, 42, 2, 963);
+    			add_location(tr, file$1, 42, 2, 972);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, tr, anchor);
@@ -1953,7 +1953,7 @@ var app = (function () {
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(input, "click", /*click*/ ctx[6], false, false, false),
+    					listen_dev(input, "change", /*click*/ ctx[6], false, false, false),
     					listen_dev(input, "change", input_change_handler)
     				];
 
@@ -2075,8 +2075,8 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			add_location(tr, file$1, 34, 2, 828);
-    			add_location(table, file$1, 33, 0, 817);
+    			add_location(tr, file$1, 34, 2, 837);
+    			add_location(table, file$1, 33, 0, 826);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -2218,11 +2218,11 @@ var app = (function () {
     	let { data = [] } = $$props;
     	let { advanced = true } = $$props;
 
-    	function click() {
-    		console.log("click", data[0]);
+    	function click(event) {
+    		console.log("click", event);
 
     		// data = data
-    		dispatch("blur", 1);
+    		dispatch("blur", data[0]);
     	}
 
     	const writable_props = ["title", "data", "advanced"];
@@ -2761,6 +2761,7 @@ var app = (function () {
       const enc = new TextEncoder();
       const dec = new TextDecoder();
       async function write(msg) {
+        // console.log('trying to write:', msg)
         const writer = port.writable.getWriter();
         msg = enc.encode(msg);
         await writer.write(msg);
@@ -2782,7 +2783,12 @@ var app = (function () {
         let lines;
         let got_all = false;
         console.log('readlines');
-        const reader = port.readable.getReader();
+        let reader;
+        if (port.readable) {
+          console.log('port readable');
+        }
+        reader = await port.readable.getReader();
+        console.log('reader', reader);
         // console.log('loop until get all lines')
         while (true) {
           const { value, done } = await reader.read();
@@ -2827,6 +2833,26 @@ var app = (function () {
         return values;
       }
 
+      async function fetch_value(i) {
+          let msg = i+"?\r\n";
+          // console.log('fetch_value: msg', msg);
+          let [value] = await query(msg);
+          let [first, ...second] = value.split(' ');
+          second = second.join(' ');
+          value = JSON.parse(second);
+        return value;
+      }
+
+      async function get_status() {
+          let msg = "STATUS?\r\n";
+          // console.log('fetch_value: msg', msg);
+          let [value] = await query(msg);
+          let [first, ...second] = value.split(' ');
+          console.log(second);
+          value = Number(second[0]);
+        return value;
+      }
+
       const obj = {
         connect: async () => {
           try {
@@ -2844,6 +2870,8 @@ var app = (function () {
             }
             // console.log('connect: data:', data)
             connected = true;
+            let status_byte = await get_status();
+            console.log('status', status_byte);
           } catch (e) {
             console.log("error message", e.message);
             if (port) port.close();
@@ -2855,6 +2883,8 @@ var app = (function () {
         query: query,
         readlines: readlines,
         fetch_values: fetch_values,
+        fetch_value: fetch_value,
+        get_status: get_status,
         fetch_name: async()=>{
           let msg = "N?\r\n";
           let [value] = await query(msg);
@@ -2885,8 +2915,8 @@ var app = (function () {
     const { console: console_1$2 } = globals;
     const file$4 = "src/App.svelte";
 
-    // (272:0) {:else}
-    function create_else_block$1(ctx) {
+    // (274:0) {:else}
+    function create_else_block_1(ctx) {
     	let h20;
     	let t1;
     	let h21;
@@ -2915,11 +2945,11 @@ var app = (function () {
     			h32 = element("h3");
     			h32.textContent = "for edge:";
     			t9 = text("\nedge://flags/#enable-experimental-web-platform-features");
-    			add_location(h20, file$4, 272, 2, 7918);
-    			add_location(h21, file$4, 273, 2, 7986);
-    			add_location(h30, file$4, 274, 2, 8039);
-    			add_location(h31, file$4, 276, 2, 8179);
-    			add_location(h32, file$4, 278, 2, 8260);
+    			add_location(h20, file$4, 274, 2, 7994);
+    			add_location(h21, file$4, 275, 2, 8062);
+    			add_location(h30, file$4, 276, 2, 8115);
+    			add_location(h31, file$4, 278, 2, 8255);
+    			add_location(h32, file$4, 280, 2, 8336);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, h20, anchor);
@@ -2952,16 +2982,16 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_else_block$1.name,
+    		id: create_else_block_1.name,
     		type: "else",
-    		source: "(272:0) {:else}",
+    		source: "(274:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (228:0) {#if ('serial' in navigator)}
+    // (227:0) {#if ('serial' in navigator)}
     function create_if_block$2(ctx) {
     	let button;
     	let t0;
@@ -2972,7 +3002,7 @@ var app = (function () {
     	let current;
     	let mounted;
     	let dispose;
-    	const if_block_creators = [create_if_block_1$2, create_if_block_2$2];
+    	const if_block_creators = [create_if_block_1$2, create_if_block_3$1];
     	const if_blocks = [];
 
     	function select_block_type_1(ctx, dirty) {
@@ -2993,7 +3023,7 @@ var app = (function () {
     			if (if_block) if_block.c();
     			if_block_anchor = empty();
     			button.hidden = /*connected*/ ctx[1];
-    			add_location(button, file$4, 228, 0, 6414);
+    			add_location(button, file$4, 227, 0, 6412);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button, anchor);
@@ -3008,7 +3038,7 @@ var app = (function () {
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(button, "click", /*connect*/ ctx[7], false, false, false);
+    				dispose = listen_dev(button, "click", /*connect*/ ctx[8], false, false, false);
     				mounted = true;
     			}
     		},
@@ -3079,15 +3109,15 @@ var app = (function () {
     		block,
     		id: create_if_block$2.name,
     		type: "if",
-    		source: "(228:0) {#if ('serial' in navigator)}",
+    		source: "(227:0) {#if ('serial' in navigator)}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (264:0) {#if connected}
-    function create_if_block_2$2(ctx) {
+    // (266:0) {#if connected}
+    function create_if_block_3$1(ctx) {
     	let h1;
     	let t1;
     	let settings;
@@ -3130,8 +3160,8 @@ var app = (function () {
     			t2 = space();
     			button = element("button");
     			button.textContent = "Done";
-    			add_location(h1, file$4, 264, 2, 7728);
-    			add_location(button, file$4, 266, 2, 7831);
+    			add_location(h1, file$4, 266, 2, 7804);
+    			add_location(button, file$4, 268, 2, 7907);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, h1, anchor);
@@ -3185,16 +3215,16 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block_2$2.name,
+    		id: create_if_block_3$1.name,
     		type: "if",
-    		source: "(264:0) {#if connected}",
+    		source: "(266:0) {#if connected}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (232:0) {#if (!show_settings) }
+    // (231:0) {#if (!show_settings) }
     function create_if_block_1$2(ctx) {
     	let button0;
     	let t0;
@@ -3233,14 +3263,9 @@ var app = (function () {
     	let svgicon10;
     	let button6_hidden_value;
     	let t11;
-    	let chtable;
-    	let updating_title;
-    	let updating_advanced;
-    	let updating_data;
-    	let t12;
-    	let pre;
-    	let t13_value = JSON.stringify(/*data*/ ctx[0]) + "";
-    	let t13;
+    	let current_block_type_index;
+    	let if_block;
+    	let if_block_anchor;
     	let current;
     	let mounted;
     	let dispose;
@@ -3255,38 +3280,16 @@ var app = (function () {
     	svgicon8 = new SvgIcon({ props: { d: filedown }, $$inline: true });
     	svgicon9 = new SvgIcon({ props: { d: fileup }, $$inline: true });
     	svgicon10 = new SvgIcon({ props: { d: cog }, $$inline: true });
+    	const if_block_creators = [create_if_block_2$2, create_else_block$1];
+    	const if_blocks = [];
 
-    	function chtable_title_binding(value) {
-    		/*chtable_title_binding*/ ctx[19].call(null, value);
+    	function select_block_type_2(ctx, dirty) {
+    		if (/*power*/ ctx[7]) return 0;
+    		return 1;
     	}
 
-    	function chtable_advanced_binding(value) {
-    		/*chtable_advanced_binding*/ ctx[20].call(null, value);
-    	}
-
-    	function chtable_data_binding(value) {
-    		/*chtable_data_binding*/ ctx[21].call(null, value);
-    	}
-
-    	let chtable_props = {};
-
-    	if (/*board_name*/ ctx[2] !== void 0) {
-    		chtable_props.title = /*board_name*/ ctx[2];
-    	}
-
-    	if (/*advanced*/ ctx[4] !== void 0) {
-    		chtable_props.advanced = /*advanced*/ ctx[4];
-    	}
-
-    	if (/*data*/ ctx[0] !== void 0) {
-    		chtable_props.data = /*data*/ ctx[0];
-    	}
-
-    	chtable = new ChTable({ props: chtable_props, $$inline: true });
-    	binding_callbacks.push(() => bind(chtable, "title", chtable_title_binding));
-    	binding_callbacks.push(() => bind(chtable, "advanced", chtable_advanced_binding));
-    	binding_callbacks.push(() => bind(chtable, "data", chtable_data_binding));
-    	chtable.$on("blur", /*handle_blur*/ ctx[14]);
+    	current_block_type_index = select_block_type_2(ctx);
+    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
 
     	const block = {
     		c: function create() {
@@ -3320,38 +3323,34 @@ var app = (function () {
     			button6 = element("button");
     			create_component(svgicon10.$$.fragment);
     			t11 = space();
-    			create_component(chtable.$$.fragment);
-    			t12 = space();
-    			pre = element("pre");
-    			t13 = text(t13_value);
+    			if_block.c();
+    			if_block_anchor = empty();
     			button0.hidden = button0_hidden_value = !/*connected*/ ctx[1];
-    			add_location(button0, file$4, 232, 0, 6505);
+    			add_location(button0, file$4, 231, 0, 6503);
     			button1.hidden = button1_hidden_value = !/*connected*/ ctx[1];
     			attr_dev(button1, "tooltip", "Read settings from the board");
     			attr_dev(button1, "class", "svelte-a19qck");
-    			add_location(button1, file$4, 235, 2, 6581);
+    			add_location(button1, file$4, 234, 2, 6579);
     			button2.hidden = button2_hidden_value = !/*connected*/ ctx[1];
     			attr_dev(button2, "tooltip", "Send config to board and bias with these values");
     			attr_dev(button2, "class", "svelte-a19qck");
-    			add_location(button2, file$4, 239, 2, 6766);
+    			add_location(button2, file$4, 238, 2, 6764);
     			button3.hidden = button3_hidden_value = !/*connected*/ ctx[1] || /*readonly*/ ctx[6];
     			attr_dev(button3, "tooltip", "save settings to board flash");
     			attr_dev(button3, "class", "svelte-a19qck");
-    			add_location(button3, file$4, 243, 2, 6957);
+    			add_location(button3, file$4, 242, 2, 6955);
     			button4.hidden = button4_hidden_value = !/*connected*/ ctx[1];
     			attr_dev(button4, "tooltip", "download settings to  a file");
     			attr_dev(button4, "class", "svelte-a19qck");
-    			add_location(button4, file$4, 247, 2, 7127);
+    			add_location(button4, file$4, 246, 2, 7125);
     			button5.hidden = button5_hidden_value = !/*connected*/ ctx[1];
     			attr_dev(button5, "tooltip", "load setting to webpage from a computer file");
     			attr_dev(button5, "class", "svelte-a19qck");
-    			add_location(button5, file$4, 250, 2, 7261);
+    			add_location(button5, file$4, 249, 2, 7259);
     			button6.hidden = button6_hidden_value = !/*connected*/ ctx[1];
     			attr_dev(button6, "tooltip", "change gui settings");
     			attr_dev(button6, "class", "svelte-a19qck");
-    			add_location(button6, file$4, 254, 2, 7414);
-    			set_style(pre, "background", "#eee");
-    			add_location(pre, file$4, 260, 0, 7642);
+    			add_location(button6, file$4, 253, 2, 7412);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button0, anchor);
@@ -3384,20 +3383,18 @@ var app = (function () {
     			insert_dev(target, button6, anchor);
     			mount_component(svgicon10, button6, null);
     			insert_dev(target, t11, anchor);
-    			mount_component(chtable, target, anchor);
-    			insert_dev(target, t12, anchor);
-    			insert_dev(target, pre, anchor);
-    			append_dev(pre, t13);
+    			if_blocks[current_block_type_index].m(target, anchor);
+    			insert_dev(target, if_block_anchor, anchor);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(button0, "click", /*disconnect*/ ctx[8], false, false, false),
-    					listen_dev(button1, "click", /*fetch_from_board*/ ctx[9], false, false, false),
-    					listen_dev(button2, "click", /*send*/ ctx[13], false, false, false),
-    					listen_dev(button3, "click", /*save_board*/ ctx[12], false, false, false),
-    					listen_dev(button4, "click", /*save_computer*/ ctx[10], false, false, false),
-    					listen_dev(button5, "click", /*load_from_computer*/ ctx[11], false, false, false),
+    					listen_dev(button0, "click", /*disconnect*/ ctx[9], false, false, false),
+    					listen_dev(button1, "click", /*fetch_from_board*/ ctx[10], false, false, false),
+    					listen_dev(button2, "click", /*send*/ ctx[14], false, false, false),
+    					listen_dev(button3, "click", /*save_board*/ ctx[13], false, false, false),
+    					listen_dev(button4, "click", /*save_computer*/ ctx[11], false, false, false),
+    					listen_dev(button5, "click", /*load_from_computer*/ ctx[12], false, false, false),
     					listen_dev(button6, "click", /*click_handler*/ ctx[18], false, false, false)
     				];
 
@@ -3433,28 +3430,31 @@ var app = (function () {
     				prop_dev(button6, "hidden", button6_hidden_value);
     			}
 
-    			const chtable_changes = {};
+    			let previous_block_index = current_block_type_index;
+    			current_block_type_index = select_block_type_2(ctx);
 
-    			if (!updating_title && dirty[0] & /*board_name*/ 4) {
-    				updating_title = true;
-    				chtable_changes.title = /*board_name*/ ctx[2];
-    				add_flush_callback(() => updating_title = false);
+    			if (current_block_type_index === previous_block_index) {
+    				if_blocks[current_block_type_index].p(ctx, dirty);
+    			} else {
+    				group_outros();
+
+    				transition_out(if_blocks[previous_block_index], 1, 1, () => {
+    					if_blocks[previous_block_index] = null;
+    				});
+
+    				check_outros();
+    				if_block = if_blocks[current_block_type_index];
+
+    				if (!if_block) {
+    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+    					if_block.c();
+    				} else {
+    					if_block.p(ctx, dirty);
+    				}
+
+    				transition_in(if_block, 1);
+    				if_block.m(if_block_anchor.parentNode, if_block_anchor);
     			}
-
-    			if (!updating_advanced && dirty[0] & /*advanced*/ 16) {
-    				updating_advanced = true;
-    				chtable_changes.advanced = /*advanced*/ ctx[4];
-    				add_flush_callback(() => updating_advanced = false);
-    			}
-
-    			if (!updating_data && dirty[0] & /*data*/ 1) {
-    				updating_data = true;
-    				chtable_changes.data = /*data*/ ctx[0];
-    				add_flush_callback(() => updating_data = false);
-    			}
-
-    			chtable.$set(chtable_changes);
-    			if ((!current || dirty[0] & /*data*/ 1) && t13_value !== (t13_value = JSON.stringify(/*data*/ ctx[0]) + "")) set_data_dev(t13, t13_value);
     		},
     		i: function intro(local) {
     			if (current) return;
@@ -3469,7 +3469,7 @@ var app = (function () {
     			transition_in(svgicon8.$$.fragment, local);
     			transition_in(svgicon9.$$.fragment, local);
     			transition_in(svgicon10.$$.fragment, local);
-    			transition_in(chtable.$$.fragment, local);
+    			transition_in(if_block);
     			current = true;
     		},
     		o: function outro(local) {
@@ -3484,7 +3484,7 @@ var app = (function () {
     			transition_out(svgicon8.$$.fragment, local);
     			transition_out(svgicon9.$$.fragment, local);
     			transition_out(svgicon10.$$.fragment, local);
-    			transition_out(chtable.$$.fragment, local);
+    			transition_out(if_block);
     			current = false;
     		},
     		d: function destroy(detaching) {
@@ -3513,9 +3513,8 @@ var app = (function () {
     			if (detaching) detach_dev(button6);
     			destroy_component(svgicon10);
     			if (detaching) detach_dev(t11);
-    			destroy_component(chtable, detaching);
-    			if (detaching) detach_dev(t12);
-    			if (detaching) detach_dev(pre);
+    			if_blocks[current_block_type_index].d(detaching);
+    			if (detaching) detach_dev(if_block_anchor);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -3525,7 +3524,150 @@ var app = (function () {
     		block,
     		id: create_if_block_1$2.name,
     		type: "if",
-    		source: "(232:0) {#if (!show_settings) }",
+    		source: "(231:0) {#if (!show_settings) }",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (262:2) {:else}
+    function create_else_block$1(ctx) {
+    	let h2;
+
+    	const block = {
+    		c: function create() {
+    			h2 = element("h2");
+    			h2.textContent = "Check if current source has power";
+    			add_location(h2, file$4, 262, 2, 7725);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, h2, anchor);
+    		},
+    		p: noop,
+    		i: noop,
+    		o: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(h2);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_else_block$1.name,
+    		type: "else",
+    		source: "(262:2) {:else}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (258:2) {#if power}
+    function create_if_block_2$2(ctx) {
+    	let chtable;
+    	let updating_title;
+    	let updating_advanced;
+    	let updating_data;
+    	let t0;
+    	let pre;
+    	let t1_value = JSON.stringify(/*data*/ ctx[0]) + "";
+    	let t1;
+    	let current;
+
+    	function chtable_title_binding(value) {
+    		/*chtable_title_binding*/ ctx[19].call(null, value);
+    	}
+
+    	function chtable_advanced_binding(value) {
+    		/*chtable_advanced_binding*/ ctx[20].call(null, value);
+    	}
+
+    	function chtable_data_binding(value) {
+    		/*chtable_data_binding*/ ctx[21].call(null, value);
+    	}
+
+    	let chtable_props = {};
+
+    	if (/*board_name*/ ctx[2] !== void 0) {
+    		chtable_props.title = /*board_name*/ ctx[2];
+    	}
+
+    	if (/*advanced*/ ctx[4] !== void 0) {
+    		chtable_props.advanced = /*advanced*/ ctx[4];
+    	}
+
+    	if (/*data*/ ctx[0] !== void 0) {
+    		chtable_props.data = /*data*/ ctx[0];
+    	}
+
+    	chtable = new ChTable({ props: chtable_props, $$inline: true });
+    	binding_callbacks.push(() => bind(chtable, "title", chtable_title_binding));
+    	binding_callbacks.push(() => bind(chtable, "advanced", chtable_advanced_binding));
+    	binding_callbacks.push(() => bind(chtable, "data", chtable_data_binding));
+    	chtable.$on("blur", /*handle_blur*/ ctx[15]);
+
+    	const block = {
+    		c: function create() {
+    			create_component(chtable.$$.fragment);
+    			t0 = space();
+    			pre = element("pre");
+    			t1 = text(t1_value);
+    			set_style(pre, "background", "#eee");
+    			add_location(pre, file$4, 260, 0, 7654);
+    		},
+    		m: function mount(target, anchor) {
+    			mount_component(chtable, target, anchor);
+    			insert_dev(target, t0, anchor);
+    			insert_dev(target, pre, anchor);
+    			append_dev(pre, t1);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const chtable_changes = {};
+
+    			if (!updating_title && dirty[0] & /*board_name*/ 4) {
+    				updating_title = true;
+    				chtable_changes.title = /*board_name*/ ctx[2];
+    				add_flush_callback(() => updating_title = false);
+    			}
+
+    			if (!updating_advanced && dirty[0] & /*advanced*/ 16) {
+    				updating_advanced = true;
+    				chtable_changes.advanced = /*advanced*/ ctx[4];
+    				add_flush_callback(() => updating_advanced = false);
+    			}
+
+    			if (!updating_data && dirty[0] & /*data*/ 1) {
+    				updating_data = true;
+    				chtable_changes.data = /*data*/ ctx[0];
+    				add_flush_callback(() => updating_data = false);
+    			}
+
+    			chtable.$set(chtable_changes);
+    			if ((!current || dirty[0] & /*data*/ 1) && t1_value !== (t1_value = JSON.stringify(/*data*/ ctx[0]) + "")) set_data_dev(t1, t1_value);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(chtable.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(chtable.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			destroy_component(chtable, detaching);
+    			if (detaching) detach_dev(t0);
+    			if (detaching) detach_dev(pre);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_2$2.name,
+    		type: "if",
+    		source: "(258:2) {#if power}",
     		ctx
     	});
 
@@ -3537,7 +3679,7 @@ var app = (function () {
     	let if_block;
     	let if_block_anchor;
     	let current;
-    	const if_block_creators = [create_if_block$2, create_else_block$1];
+    	const if_block_creators = [create_if_block$2, create_else_block_1];
     	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
@@ -3623,7 +3765,7 @@ var app = (function () {
     			// console.log('different',r,c,a[r][c], b[r][c], a[r][c]!=b[r][c]);
     			if (a[r][c] != b[r][c]) {
     				found = [r, c];
-    				console.log("found", r, c);
+    				console.log("find_change found", r, c);
     				return found;
     			}
     		}
@@ -3650,6 +3792,7 @@ var app = (function () {
     	let ready = false;
     	let ready_count = 0;
     	let readonly;
+    	let power = true;
 
     	async function connect() {
     		$$invalidate(1, [connected, port] = await serial_instance.connect(), connected);
@@ -3688,8 +3831,11 @@ var app = (function () {
     		}
 
     		$$invalidate(0, data);
-    		$$invalidate(15, old_data = JSON.parse(JSON.stringify(data)));
+    		$$invalidate(16, old_data = JSON.parse(JSON.stringify(data)));
     		console.log(data);
+    		const status_byte = await serial_instance.get_status();
+    		$$invalidate(7, power = status_byte == 7);
+    		console.log("status", status_byte, power);
     	}
 
     	async function fetch_rw() {
@@ -3728,8 +3874,8 @@ var app = (function () {
     	async function save_board() {
     		console.log("save on board");
     		serial_instance.write("J\r\n");
-    		let response = serial_instance.readlines(1);
-    		console.log("response", response);
+    		let response = await serial_instance.readlines(1);
+    		console.log("save on board response", response);
     	}
 
     	async function send_cmd(cmd) {
@@ -3740,7 +3886,18 @@ var app = (function () {
     	}
 
     	async function send_one(i) {
+    		const status_byte = await serial_instance.get_status();
+    		$$invalidate(7, power = status_byte == 7);
+    		console.log("status", status_byte, power);
+
+    		if (!power) {
+    			console.log("not written, no power");
+    			return;
+    		}
+
+    		console.log("send_one write");
     		await write_value(i, JSON.stringify(data[i]));
+    		console.log("send_one readback response");
     		let lines = await serial_instance.readlines(3);
     		console.log("send_one: got from device:", lines);
     		return lines;
@@ -3755,7 +3912,7 @@ var app = (function () {
     	}
 
     	async function handle_blur(e) {
-    		console.log("App.svelte handle blur/click");
+    		console.log("App.svelte handle blur/click", e.detail);
 
     		// First check if board name changed
     		if (old_name != board_name) {
@@ -3764,20 +3921,22 @@ var app = (function () {
     			await send_cmd("N " + board_name + "\r\n");
     		} else {
     			if (send_config == 2) {
-    				if (e.detail == 1) {
-    					$$invalidate(17, ready_count = 2);
-    					$$invalidate(16, ready = true);
-    				}
-
-    				let found = find_change(old_data, data);
-
-    				if (found.length > 0) {
-    					console.log("blur/click found change in row", found);
-    					await send_one(found[0]);
-    					$$invalidate(15, old_data = JSON.parse(JSON.stringify(data)));
-    				}
+    				$$invalidate(17, ready = true);
     			}
     		}
+    	}
+
+    	async function send_one_wrapper(found) {
+    		let res;
+    		res = await serial_instance.fetch_value(found[0]);
+    		console.log("before", res);
+    		res = await send_one(found[0]);
+
+    		// console.log(res)
+    		res = await serial_instance.fetch_value(found[0]);
+
+    		console.log("after", res);
+    		$$invalidate(16, old_data = JSON.parse(JSON.stringify(data)));
     	}
 
     	const writable_props = [];
@@ -3847,6 +4006,7 @@ var app = (function () {
     		ready,
     		ready_count,
     		readonly,
+    		power,
     		connect,
     		disconnect,
     		fetch_from_board,
@@ -3861,7 +4021,8 @@ var app = (function () {
     		send_one,
     		send,
     		find_change,
-    		handle_blur
+    		handle_blur,
+    		send_one_wrapper
     	});
 
     	$$self.$inject_state = $$props => {
@@ -3869,7 +4030,7 @@ var app = (function () {
     		if ("port" in $$props) port = $$props.port;
     		if ("connected" in $$props) $$invalidate(1, connected = $$props.connected);
     		if ("data" in $$props) $$invalidate(0, data = $$props.data);
-    		if ("old_data" in $$props) $$invalidate(15, old_data = $$props.old_data);
+    		if ("old_data" in $$props) $$invalidate(16, old_data = $$props.old_data);
     		if ("board_name" in $$props) $$invalidate(2, board_name = $$props.board_name);
     		if ("old_name" in $$props) old_name = $$props.old_name;
     		if ("show_settings" in $$props) $$invalidate(3, show_settings = $$props.show_settings);
@@ -3877,9 +4038,10 @@ var app = (function () {
     		if ("on_blur" in $$props) on_blur = $$props.on_blur;
     		if ("send_config" in $$props) $$invalidate(5, send_config = $$props.send_config);
     		if ("serial_instance" in $$props) serial_instance = $$props.serial_instance;
-    		if ("ready" in $$props) $$invalidate(16, ready = $$props.ready);
-    		if ("ready_count" in $$props) $$invalidate(17, ready_count = $$props.ready_count);
+    		if ("ready" in $$props) $$invalidate(17, ready = $$props.ready);
+    		if ("ready_count" in $$props) ready_count = $$props.ready_count;
     		if ("readonly" in $$props) $$invalidate(6, readonly = $$props.readonly);
+    		if ("power" in $$props) $$invalidate(7, power = $$props.power);
     	};
 
     	if ($$props && "$$inject" in $$props) {
@@ -3887,23 +4049,19 @@ var app = (function () {
     	}
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty[0] & /*data, ready, ready_count, old_data*/ 229377) {
-    			 if (data.length > 0) {
-    				if (ready) {
-    					// console.log('data',ready, data[0], old_data[0])
-    					// somehow this gets called twice... 1st no change, 2nd with change
-    					$$invalidate(17, ready_count--, ready_count);
+    		if ($$self.$$.dirty[0] & /*data, ready, old_data*/ 196609) {
+    			 {
+    				if (data.length > 0) {
+    					if (ready) {
+    						console.log("$");
+    						let found = find_change(old_data, data);
+    						console.log("found", found);
 
-    					let found = find_change(old_data, data);
-
-    					if (found.length > 0) {
-    						// console.log('found change in row', found)
-    						send_one(found[0]); //.then(res=>console.log(res));
-    					}
-
-    					if (ready_count == 0) {
-    						$$invalidate(15, old_data = JSON.parse(JSON.stringify(data)));
-    						$$invalidate(16, ready = false);
+    						if (found.length > 0) {
+    							console.log("found change in row", found);
+    							send_one_wrapper(found);
+    							$$invalidate(17, ready = false);
+    						}
     					}
     				}
     			}
@@ -3918,6 +4076,7 @@ var app = (function () {
     		advanced,
     		send_config,
     		readonly,
+    		power,
     		connect,
     		disconnect,
     		fetch_from_board,
@@ -3928,7 +4087,6 @@ var app = (function () {
     		handle_blur,
     		old_data,
     		ready,
-    		ready_count,
     		click_handler,
     		chtable_title_binding,
     		chtable_advanced_binding,
