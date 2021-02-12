@@ -27,7 +27,9 @@ export function serial_wrapper(extras) {
     await writer.write(msg);
     writer.releaseLock();
   }
-
+  async function logout(msg) {
+    await write("\x04");
+  }
   async function query(msg, number_lines=1) {
     // console.log('query', msg)
     await write(msg);
@@ -142,6 +144,7 @@ export function serial_wrapper(extras) {
     write: write,
     query: query,
     readlines: readlines,
+    logout: logout,
     fetch_values: fetch_values,
     fetch_value: fetch_value,
     get_status: get_status,
