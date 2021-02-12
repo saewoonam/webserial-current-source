@@ -2761,13 +2761,16 @@ var app = (function () {
       const enc = new TextEncoder();
       const dec = new TextDecoder();
       async function write(msg) {
-        // console.log('trying to write:', msg)
+        console.log('trying to write:', msg);
         const writer = port.writable.getWriter();
         msg = enc.encode(msg);
         await writer.write(msg);
         writer.releaseLock();
+        console.log('done writing');
       }
-
+      async function logout(msg) {
+        await write("\x04");
+      }
       async function query(msg, number_lines=1) {
         // console.log('query', msg)
         await write(msg);
@@ -2793,7 +2796,7 @@ var app = (function () {
         while (true) {
           const { value, done } = await reader.read();
           // console.log(value.length)
-          console.log(dec.decode(value));
+          // console.log(dec.decode(value));
           total_msg += dec.decode(value);
           // console.log('values, total_msg', value, total_msg, total_msg.length);
           lines = total_msg.split(/\r\n/);
@@ -2808,7 +2811,7 @@ var app = (function () {
           if (done || got_all) {
             lines = lines.filter(item => item.length>0);
             reader.releaseLock();
-            // console.log('release reader lock')
+            console.log('release reader lock', lines);
             break;
           }
         }
@@ -2843,13 +2846,28 @@ var app = (function () {
         return value;
       }
 
+      const handle = (promise) => {
+      return promise
+        .then(data => ({data:data, ok:true, error: undefined}))
+        .catch(error => Promise.resolve({data:undefined, ok: false, error:error}));
+      };
       async function get_status() {
           let msg = "STATUS?\r\n";
-          // console.log('fetch_value: msg', msg);
-          let [value] = await query(msg);
+          // let value = await query(msg)
+          
+          let value = await handle(query(msg));
+          if (value.error) {
+            console.log('caught error in get_status', value.error);
+            return 128;
+            // throw value.error;
+          }
+          
+          value = value.data[0];
+          // console.log(value)
           let [first, ...second] = value.split(' ');
-          console.log(second);
+          // console.log('status:', second)
           value = Number(second[0]);
+          console.log('status', value);
         return value;
       }
 
@@ -2873,7 +2891,7 @@ var app = (function () {
             let status_byte = await get_status();
             console.log('status', status_byte);
           } catch (e) {
-            console.log("error message", e.message);
+            console.log("error message", e, e.message, port);
             if (port) port.close();
             connected = false;
           }
@@ -2882,6 +2900,7 @@ var app = (function () {
         write: write,
         query: query,
         readlines: readlines,
+        logout: logout,
         fetch_values: fetch_values,
         fetch_value: fetch_value,
         get_status: get_status,
@@ -2897,6 +2916,7 @@ var app = (function () {
             // data = [];
             // data = data;
             connected = false;
+            port = undefined;
           } catch (e) {
             console.log('error in disconnect', e);
           }
@@ -2915,7 +2935,7 @@ var app = (function () {
     const { console: console_1$2 } = globals;
     const file$4 = "src/App.svelte";
 
-    // (274:0) {:else}
+    // (300:0) {:else}
     function create_else_block_1(ctx) {
     	let h20;
     	let t1;
@@ -2945,11 +2965,11 @@ var app = (function () {
     			h32 = element("h3");
     			h32.textContent = "for edge:";
     			t9 = text("\nedge://flags/#enable-experimental-web-platform-features");
-    			add_location(h20, file$4, 274, 2, 7994);
-    			add_location(h21, file$4, 275, 2, 8062);
-    			add_location(h30, file$4, 276, 2, 8115);
-    			add_location(h31, file$4, 278, 2, 8255);
-    			add_location(h32, file$4, 280, 2, 8336);
+    			add_location(h20, file$4, 300, 2, 8713);
+    			add_location(h21, file$4, 301, 2, 8781);
+    			add_location(h30, file$4, 302, 2, 8834);
+    			add_location(h31, file$4, 304, 2, 8974);
+    			add_location(h32, file$4, 306, 2, 9055);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, h20, anchor);
@@ -2984,14 +3004,14 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(274:0) {:else}",
+    		source: "(300:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (227:0) {#if ('serial' in navigator)}
+    // (250:0) {#if ('serial' in navigator)}
     function create_if_block$2(ctx) {
     	let button;
     	let t0;
@@ -3023,7 +3043,7 @@ var app = (function () {
     			if (if_block) if_block.c();
     			if_block_anchor = empty();
     			button.hidden = /*connected*/ ctx[1];
-    			add_location(button, file$4, 227, 0, 6412);
+    			add_location(button, file$4, 250, 0, 7035);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button, anchor);
@@ -3038,7 +3058,7 @@ var app = (function () {
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(button, "click", /*connect*/ ctx[8], false, false, false);
+    				dispose = listen_dev(button, "click", /*connect*/ ctx[9], false, false, false);
     				mounted = true;
     			}
     		},
@@ -3109,14 +3129,14 @@ var app = (function () {
     		block,
     		id: create_if_block$2.name,
     		type: "if",
-    		source: "(227:0) {#if ('serial' in navigator)}",
+    		source: "(250:0) {#if ('serial' in navigator)}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (266:0) {#if connected}
+    // (292:0) {#if connected}
     function create_if_block_3$1(ctx) {
     	let h1;
     	let t1;
@@ -3130,11 +3150,11 @@ var app = (function () {
     	let dispose;
 
     	function settings_show_dac_offset_binding(value) {
-    		/*settings_show_dac_offset_binding*/ ctx[22].call(null, value);
+    		/*settings_show_dac_offset_binding*/ ctx[23].call(null, value);
     	}
 
     	function settings_selected_option_binding(value) {
-    		/*settings_selected_option_binding*/ ctx[23].call(null, value);
+    		/*settings_selected_option_binding*/ ctx[24].call(null, value);
     	}
 
     	let settings_props = {};
@@ -3160,8 +3180,8 @@ var app = (function () {
     			t2 = space();
     			button = element("button");
     			button.textContent = "Done";
-    			add_location(h1, file$4, 266, 2, 7804);
-    			add_location(button, file$4, 268, 2, 7907);
+    			add_location(h1, file$4, 292, 2, 8523);
+    			add_location(button, file$4, 294, 2, 8626);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, h1, anchor);
@@ -3172,7 +3192,7 @@ var app = (function () {
     			current = true;
 
     			if (!mounted) {
-    				dispose = listen_dev(button, "click", /*click_handler_1*/ ctx[24], false, false, false);
+    				dispose = listen_dev(button, "click", /*click_handler_1*/ ctx[25], false, false, false);
     				mounted = true;
     			}
     		},
@@ -3217,14 +3237,14 @@ var app = (function () {
     		block,
     		id: create_if_block_3$1.name,
     		type: "if",
-    		source: "(266:0) {#if connected}",
+    		source: "(292:0) {#if connected}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (231:0) {#if (!show_settings) }
+    // (254:0) {#if (!show_settings) }
     function create_if_block_1$2(ctx) {
     	let button0;
     	let t0;
@@ -3263,6 +3283,10 @@ var app = (function () {
     	let svgicon10;
     	let button6_hidden_value;
     	let t11;
+    	let button7;
+    	let t12;
+    	let button7_hidden_value;
+    	let t13;
     	let current_block_type_index;
     	let if_block;
     	let if_block_anchor;
@@ -3323,34 +3347,39 @@ var app = (function () {
     			button6 = element("button");
     			create_component(svgicon10.$$.fragment);
     			t11 = space();
+    			button7 = element("button");
+    			t12 = text("get_status");
+    			t13 = space();
     			if_block.c();
     			if_block_anchor = empty();
     			button0.hidden = button0_hidden_value = !/*connected*/ ctx[1];
-    			add_location(button0, file$4, 231, 0, 6503);
+    			add_location(button0, file$4, 254, 0, 7126);
     			button1.hidden = button1_hidden_value = !/*connected*/ ctx[1];
     			attr_dev(button1, "tooltip", "Read settings from the board");
     			attr_dev(button1, "class", "svelte-a19qck");
-    			add_location(button1, file$4, 234, 2, 6579);
+    			add_location(button1, file$4, 257, 2, 7202);
     			button2.hidden = button2_hidden_value = !/*connected*/ ctx[1];
     			attr_dev(button2, "tooltip", "Send config to board and bias with these values");
     			attr_dev(button2, "class", "svelte-a19qck");
-    			add_location(button2, file$4, 238, 2, 6764);
+    			add_location(button2, file$4, 261, 2, 7387);
     			button3.hidden = button3_hidden_value = !/*connected*/ ctx[1] || /*readonly*/ ctx[6];
     			attr_dev(button3, "tooltip", "save settings to board flash");
     			attr_dev(button3, "class", "svelte-a19qck");
-    			add_location(button3, file$4, 242, 2, 6955);
+    			add_location(button3, file$4, 265, 2, 7578);
     			button4.hidden = button4_hidden_value = !/*connected*/ ctx[1];
     			attr_dev(button4, "tooltip", "download settings to  a file");
     			attr_dev(button4, "class", "svelte-a19qck");
-    			add_location(button4, file$4, 246, 2, 7125);
+    			add_location(button4, file$4, 269, 2, 7748);
     			button5.hidden = button5_hidden_value = !/*connected*/ ctx[1];
     			attr_dev(button5, "tooltip", "load setting to webpage from a computer file");
     			attr_dev(button5, "class", "svelte-a19qck");
-    			add_location(button5, file$4, 249, 2, 7259);
+    			add_location(button5, file$4, 272, 2, 7882);
     			button6.hidden = button6_hidden_value = !/*connected*/ ctx[1];
     			attr_dev(button6, "tooltip", "change gui settings");
     			attr_dev(button6, "class", "svelte-a19qck");
-    			add_location(button6, file$4, 253, 2, 7412);
+    			add_location(button6, file$4, 276, 2, 8035);
+    			button7.hidden = button7_hidden_value = !/*connected*/ ctx[1];
+    			add_location(button7, file$4, 280, 2, 8164);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, button0, anchor);
@@ -3383,19 +3412,23 @@ var app = (function () {
     			insert_dev(target, button6, anchor);
     			mount_component(svgicon10, button6, null);
     			insert_dev(target, t11, anchor);
+    			insert_dev(target, button7, anchor);
+    			append_dev(button7, t12);
+    			insert_dev(target, t13, anchor);
     			if_blocks[current_block_type_index].m(target, anchor);
     			insert_dev(target, if_block_anchor, anchor);
     			current = true;
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(button0, "click", /*disconnect*/ ctx[9], false, false, false),
-    					listen_dev(button1, "click", /*fetch_from_board*/ ctx[10], false, false, false),
-    					listen_dev(button2, "click", /*send*/ ctx[14], false, false, false),
-    					listen_dev(button3, "click", /*save_board*/ ctx[13], false, false, false),
-    					listen_dev(button4, "click", /*save_computer*/ ctx[11], false, false, false),
-    					listen_dev(button5, "click", /*load_from_computer*/ ctx[12], false, false, false),
-    					listen_dev(button6, "click", /*click_handler*/ ctx[18], false, false, false)
+    					listen_dev(button0, "click", /*disconnect*/ ctx[10], false, false, false),
+    					listen_dev(button1, "click", /*fetch_from_board*/ ctx[11], false, false, false),
+    					listen_dev(button2, "click", /*send*/ ctx[15], false, false, false),
+    					listen_dev(button3, "click", /*save_board*/ ctx[14], false, false, false),
+    					listen_dev(button4, "click", /*save_computer*/ ctx[12], false, false, false),
+    					listen_dev(button5, "click", /*load_from_computer*/ ctx[13], false, false, false),
+    					listen_dev(button6, "click", /*click_handler*/ ctx[19], false, false, false),
+    					listen_dev(button7, "click", /*serial_instance*/ ctx[8].get_status, false, false, false)
     				];
 
     				mounted = true;
@@ -3428,6 +3461,10 @@ var app = (function () {
 
     			if (!current || dirty[0] & /*connected*/ 2 && button6_hidden_value !== (button6_hidden_value = !/*connected*/ ctx[1])) {
     				prop_dev(button6, "hidden", button6_hidden_value);
+    			}
+
+    			if (!current || dirty[0] & /*connected*/ 2 && button7_hidden_value !== (button7_hidden_value = !/*connected*/ ctx[1])) {
+    				prop_dev(button7, "hidden", button7_hidden_value);
     			}
 
     			let previous_block_index = current_block_type_index;
@@ -3513,6 +3550,8 @@ var app = (function () {
     			if (detaching) detach_dev(button6);
     			destroy_component(svgicon10);
     			if (detaching) detach_dev(t11);
+    			if (detaching) detach_dev(button7);
+    			if (detaching) detach_dev(t13);
     			if_blocks[current_block_type_index].d(detaching);
     			if (detaching) detach_dev(if_block_anchor);
     			mounted = false;
@@ -3524,14 +3563,14 @@ var app = (function () {
     		block,
     		id: create_if_block_1$2.name,
     		type: "if",
-    		source: "(231:0) {#if (!show_settings) }",
+    		source: "(254:0) {#if (!show_settings) }",
     		ctx
     	});
 
     	return block;
     }
 
-    // (262:2) {:else}
+    // (288:2) {:else}
     function create_else_block$1(ctx) {
     	let h2;
 
@@ -3539,7 +3578,7 @@ var app = (function () {
     		c: function create() {
     			h2 = element("h2");
     			h2.textContent = "Check if current source has power";
-    			add_location(h2, file$4, 262, 2, 7725);
+    			add_location(h2, file$4, 288, 2, 8444);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, h2, anchor);
@@ -3556,14 +3595,14 @@ var app = (function () {
     		block,
     		id: create_else_block$1.name,
     		type: "else",
-    		source: "(262:2) {:else}",
+    		source: "(288:2) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (258:2) {#if power}
+    // (284:2) {#if power}
     function create_if_block_2$2(ctx) {
     	let chtable;
     	let updating_title;
@@ -3576,15 +3615,15 @@ var app = (function () {
     	let current;
 
     	function chtable_title_binding(value) {
-    		/*chtable_title_binding*/ ctx[19].call(null, value);
+    		/*chtable_title_binding*/ ctx[20].call(null, value);
     	}
 
     	function chtable_advanced_binding(value) {
-    		/*chtable_advanced_binding*/ ctx[20].call(null, value);
+    		/*chtable_advanced_binding*/ ctx[21].call(null, value);
     	}
 
     	function chtable_data_binding(value) {
-    		/*chtable_data_binding*/ ctx[21].call(null, value);
+    		/*chtable_data_binding*/ ctx[22].call(null, value);
     	}
 
     	let chtable_props = {};
@@ -3605,7 +3644,7 @@ var app = (function () {
     	binding_callbacks.push(() => bind(chtable, "title", chtable_title_binding));
     	binding_callbacks.push(() => bind(chtable, "advanced", chtable_advanced_binding));
     	binding_callbacks.push(() => bind(chtable, "data", chtable_data_binding));
-    	chtable.$on("blur", /*handle_blur*/ ctx[15]);
+    	chtable.$on("blur", /*handle_blur*/ ctx[16]);
 
     	const block = {
     		c: function create() {
@@ -3614,7 +3653,7 @@ var app = (function () {
     			pre = element("pre");
     			t1 = text(t1_value);
     			set_style(pre, "background", "#eee");
-    			add_location(pre, file$4, 260, 0, 7654);
+    			add_location(pre, file$4, 286, 0, 8373);
     		},
     		m: function mount(target, anchor) {
     			mount_component(chtable, target, anchor);
@@ -3667,7 +3706,7 @@ var app = (function () {
     		block,
     		id: create_if_block_2$2.name,
     		type: "if",
-    		source: "(258:2) {#if power}",
+    		source: "(284:2) {#if power}",
     		ctx
     	});
 
@@ -3797,45 +3836,56 @@ var app = (function () {
     	async function connect() {
     		$$invalidate(1, [connected, port] = await serial_instance.connect(), connected);
 
-    		// read config and name from board
-    		await fetch_from_board();
+    		if (connected) {
+    			// read config and name from board
+    			await fetch_from_board();
 
-    		// data = await serial_instance.fetch_values();
-    		// old_data = JSON.parse(JSON.stringify(data));
-    		console.log("old_data", old_data, old_data == data);
+    			// data = await serial_instance.fetch_values();
+    			// old_data = JSON.parse(JSON.stringify(data));
+    			console.log("old_data", old_data, old_data == data);
 
-    		$$invalidate(2, board_name = await serial_instance.fetch_name());
-    		old_name = board_name;
-    		$$invalidate(6, readonly = await fetch_rw());
-    		console.log("connected", connected, port, readonly);
+    			$$invalidate(2, board_name = await serial_instance.fetch_name());
+    			old_name = board_name;
+    			$$invalidate(6, readonly = await fetch_rw());
+    			console.log("connected", connected, port, readonly);
+    		}
     	}
 
     	async function disconnect() {
     		try {
-    			port.close();
+    			// port.close();
+    			serial_instance.disconnect();
+
     			$$invalidate(0, data = []);
     			$$invalidate(0, data);
     			$$invalidate(2, board_name = "");
     			old_name = "";
     			$$invalidate(1, connected = false);
+    			port = undefined;
+    			$$invalidate(7, power = true); // this is to clear the screen
     		} catch(e) {
     			console.log("error message", e.message);
     		}
     	}
 
     	async function fetch_from_board() {
-    		$$invalidate(0, data = await serial_instance.fetch_values());
-
-    		for (let row of data) {
-    			if (row.length == 3) row.push(32768);
-    		}
-
-    		$$invalidate(0, data);
-    		$$invalidate(16, old_data = JSON.parse(JSON.stringify(data)));
-    		console.log(data);
     		const status_byte = await serial_instance.get_status();
     		$$invalidate(7, power = status_byte == 7);
     		console.log("status", status_byte, power);
+
+    		if (status_byte == 128) {
+    			await disconnect();
+    		} else {
+    			$$invalidate(0, data = await serial_instance.fetch_values());
+
+    			for (let row of data) {
+    				if (row.length == 3) row.push(32768);
+    			}
+
+    			$$invalidate(0, data);
+    			$$invalidate(17, old_data = JSON.parse(JSON.stringify(data)));
+    			console.log(data);
+    		}
     	}
 
     	async function fetch_rw() {
@@ -3906,6 +3956,11 @@ var app = (function () {
     	async function send() {
     		console.log("send", data);
 
+    		if (!await check_connected()) {
+    			await disconnect();
+    			return;
+    		}
+
     		for (let i = 0; i < 8; i++) {
     			await send_one(i);
     		}
@@ -3921,13 +3976,26 @@ var app = (function () {
     			await send_cmd("N " + board_name + "\r\n");
     		} else {
     			if (send_config == 2) {
-    				$$invalidate(17, ready = true);
+    				$$invalidate(18, ready = true);
     			}
     		}
     	}
 
+    	async function check_connected() {
+    		const status_byte = await serial_instance.get_status();
+    		console.log("check_connected", status_byte != 128);
+    		return status_byte != 128;
+    	}
+
     	async function send_one_wrapper(found) {
     		let res;
+
+    		if (!await check_connected()) {
+    			await disconnect();
+    			return;
+    		}
+
+    		console.log("send_one_wrapper");
     		res = await serial_instance.fetch_value(found[0]);
     		console.log("before", res);
     		res = await send_one(found[0]);
@@ -3936,7 +4004,7 @@ var app = (function () {
     		res = await serial_instance.fetch_value(found[0]);
 
     		console.log("after", res);
-    		$$invalidate(16, old_data = JSON.parse(JSON.stringify(data)));
+    		$$invalidate(17, old_data = JSON.parse(JSON.stringify(data)));
     	}
 
     	const writable_props = [];
@@ -4022,6 +4090,7 @@ var app = (function () {
     		send,
     		find_change,
     		handle_blur,
+    		check_connected,
     		send_one_wrapper
     	});
 
@@ -4030,15 +4099,15 @@ var app = (function () {
     		if ("port" in $$props) port = $$props.port;
     		if ("connected" in $$props) $$invalidate(1, connected = $$props.connected);
     		if ("data" in $$props) $$invalidate(0, data = $$props.data);
-    		if ("old_data" in $$props) $$invalidate(16, old_data = $$props.old_data);
+    		if ("old_data" in $$props) $$invalidate(17, old_data = $$props.old_data);
     		if ("board_name" in $$props) $$invalidate(2, board_name = $$props.board_name);
     		if ("old_name" in $$props) old_name = $$props.old_name;
     		if ("show_settings" in $$props) $$invalidate(3, show_settings = $$props.show_settings);
     		if ("advanced" in $$props) $$invalidate(4, advanced = $$props.advanced);
     		if ("on_blur" in $$props) on_blur = $$props.on_blur;
     		if ("send_config" in $$props) $$invalidate(5, send_config = $$props.send_config);
-    		if ("serial_instance" in $$props) serial_instance = $$props.serial_instance;
-    		if ("ready" in $$props) $$invalidate(17, ready = $$props.ready);
+    		if ("serial_instance" in $$props) $$invalidate(8, serial_instance = $$props.serial_instance);
+    		if ("ready" in $$props) $$invalidate(18, ready = $$props.ready);
     		if ("ready_count" in $$props) ready_count = $$props.ready_count;
     		if ("readonly" in $$props) $$invalidate(6, readonly = $$props.readonly);
     		if ("power" in $$props) $$invalidate(7, power = $$props.power);
@@ -4049,7 +4118,7 @@ var app = (function () {
     	}
 
     	$$self.$$.update = () => {
-    		if ($$self.$$.dirty[0] & /*data, ready, old_data*/ 196609) {
+    		if ($$self.$$.dirty[0] & /*data, ready, old_data*/ 393217) {
     			 {
     				if (data.length > 0) {
     					if (ready) {
@@ -4060,7 +4129,7 @@ var app = (function () {
     						if (found.length > 0) {
     							console.log("found change in row", found);
     							send_one_wrapper(found);
-    							$$invalidate(17, ready = false);
+    							$$invalidate(18, ready = false);
     						}
     					}
     				}
@@ -4077,6 +4146,7 @@ var app = (function () {
     		send_config,
     		readonly,
     		power,
+    		serial_instance,
     		connect,
     		disconnect,
     		fetch_from_board,

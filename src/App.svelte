@@ -23,40 +23,49 @@
   let power = true
   async function connect () {
     [connected,port] = await serial_instance.connect(); 
-    // read config and name from board
-    await fetch_from_board()
-    // data = await serial_instance.fetch_values();
-    // old_data = JSON.parse(JSON.stringify(data));
-    console.log('old_data', old_data, old_data==data);
-    board_name = await serial_instance.fetch_name();
-    old_name = board_name;
-    readonly = await fetch_rw();
-    console.log('connected', connected, port, readonly);
+    if (connected) {
+      // read config and name from board
+      await fetch_from_board()
+      // data = await serial_instance.fetch_values();
+      // old_data = JSON.parse(JSON.stringify(data));
+      console.log('old_data', old_data, old_data==data);
+      board_name = await serial_instance.fetch_name();
+      old_name = board_name;
+      readonly = await fetch_rw();
+      console.log('connected', connected, port, readonly);
+    }
   }
   async function disconnect () {
     try {
-      port.close();
+      // port.close();
+      serial_instance.disconnect()
       data = [];
       data = data;
       board_name = ''
       old_name = ''
       connected = false;
+      port = undefined
+      power = true; // this is to clear the screen
     } catch (e) {
       console.log("error message", e.message)
     }
   }
   async function fetch_from_board() {
-    data = await serial_instance.fetch_values();
-    for (let row of data) {
-      if (row.length == 3) row.push(32768)
-    }
-    data = data;
-    old_data = JSON.parse(JSON.stringify(data));
-    console.log(data)
-
     const status_byte = await serial_instance.get_status();
     power = (status_byte==7)
     console.log('status', status_byte, power)
+    if (status_byte == 128) {
+      await disconnect()
+    } else {
+      data = await serial_instance.fetch_values();
+      for (let row of data) {
+        if (row.length == 3) row.push(32768)
+      }
+      data = data;
+      old_data = JSON.parse(JSON.stringify(data));
+      console.log(data)
+    }
+
   }
   async function fetch_rw() {
     let msg = "R?\r\n";
@@ -136,6 +145,10 @@
   }
   async function send() {
     console.log('send', data)
+    if (!await check_connected()) {
+      await disconnect()
+      return
+    }
     for (let i=0; i<8; i++) {
       await send_one(i)
     }
@@ -168,8 +181,18 @@
       }
     }
   }
+  async function check_connected() {
+    const status_byte = await serial_instance.get_status();
+    console.log('check_connected', status_byte!=128)
+    return status_byte!=128
+  }
   async function send_one_wrapper(found) {
     let res;
+    if (!await check_connected()) {
+      await disconnect()
+      return
+    }
+    console.log('send_one_wrapper')
     res = await serial_instance.fetch_value(found[0])
     console.log('before', res)
     res= await send_one(found[0])
@@ -254,6 +277,9 @@ tooltip="load setting to webpage from a computer file">
   <button on:click={()=>show_settings=true} hidden={!connected}
 tooltip="change gui settings">
   <SvgIcon d={cog} />
+  </button>
+  <button on:click={serial_instance.get_status} hidden={!connected}>
+    get_status
   </button>
   {#if power}
   <ChTable on:blur={handle_blur} bind:title={board_name}

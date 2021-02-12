@@ -21,11 +21,12 @@ export function serial_wrapper(extras) {
     }
   }
   async function write(msg) {
-    // console.log('trying to write:', msg)
+    console.log('trying to write:', msg)
     const writer = port.writable.getWriter();
     msg = enc.encode(msg);
     await writer.write(msg);
     writer.releaseLock();
+    console.log('done writing')
   }
   async function logout(msg) {
     await write("\x04");
@@ -55,7 +56,7 @@ export function serial_wrapper(extras) {
     while (true) {
       const { value, done } = await reader.read();
       // console.log(value.length)
-      console.log(dec.decode(value));
+      // console.log(dec.decode(value));
       total_msg += dec.decode(value);
       // console.log('values, total_msg', value, total_msg, total_msg.length);
       lines = total_msg.split(/\r\n/)
@@ -70,7 +71,7 @@ export function serial_wrapper(extras) {
       if (done || got_all) {
         lines = lines.filter(item => item.length>0)
         reader.releaseLock();
-        // console.log('release reader lock')
+        console.log('release reader lock', lines)
         break;
       }
     }
@@ -105,13 +106,28 @@ export function serial_wrapper(extras) {
     return value;
   }
 
+  const handle = (promise) => {
+  return promise
+    .then(data => ({data:data, ok:true, error: undefined}))
+    .catch(error => Promise.resolve({data:undefined, ok: false, error:error}));
+  }
   async function get_status() {
       let msg = "STATUS?\r\n"
-      // console.log('fetch_value: msg', msg);
-      let [value] = await query(msg)
+      // let value = await query(msg)
+      
+      let value = await handle(query(msg))
+      if (value.error) {
+        console.log('caught error in get_status', value.error)
+        return 128;
+        // throw value.error;
+      }
+      
+      value = value.data[0]
+      // console.log(value)
       let [first, ...second] = value.split(' ');
-      console.log(second)
+      // console.log('status:', second)
       value = Number(second[0])
+      console.log('status', value)
     return value;
   }
 
@@ -135,7 +151,7 @@ export function serial_wrapper(extras) {
         let status_byte = await get_status()
         console.log('status', status_byte)
       } catch (e) {
-        console.log("error message", e.message)
+        console.log("error message", e, e.message, port)
         if (port) port.close();
         connected = false;
       }
@@ -160,6 +176,7 @@ export function serial_wrapper(extras) {
         // data = [];
         // data = data;
         connected = false;
+        port = undefined
       } catch (e) {
         console.log('error in disconnect', e);
       }
